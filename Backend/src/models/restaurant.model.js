@@ -17,19 +17,26 @@ const restaurantSchema = new Schema(
     },
 
     coordinates: {
-      lat: { type: Number, required: true },
-      lng: { type: Number, required: true },
+      lat: {
+        type: Number,
+        required: true,
+      },
+      lng: {
+        type: Number,
+        required: true,
+      },
     },
 
     cuisine: {
       type: String,
       required: true,
+      trim: true,
       index: true,
     },
 
     image: {
       type: String,
-      default: "",
+      required: true,
     },
 
     avgRating: {
@@ -45,10 +52,15 @@ const restaurantSchema = new Schema(
     },
 
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true, // soft delete support
     },
   },
   {
@@ -56,13 +68,22 @@ const restaurantSchema = new Schema(
   }
 );
 
-//Prevent duplicate restaurants near same location
+// Prevent duplicate restaurants at same location 
 restaurantSchema.index(
   { name: 1, "coordinates.lat": 1, "coordinates.lng": 1 },
   { unique: true }
 );
 
+// Enable search by name, cuisine, address 
+restaurantSchema.index({
+  name: "text",
+  cuisine: "text",
+  address: "text",
+});
+
+// Pagination support 
 restaurantSchema.plugin(mongooseAggregatePaginate);
 
 export const Restaurant = mongoose.model("Restaurant", restaurantSchema);
+
 
