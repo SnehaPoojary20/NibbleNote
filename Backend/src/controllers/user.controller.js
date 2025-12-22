@@ -108,7 +108,10 @@ const loginUser =asyncHandler(async(req,res)=>{
   }
 
   const user= await User.findOne({
-    $or:[{username},{email}]
+    $or: [
+    { username: username?.toLowerCase() },
+    { email: email?.toLowerCase() }
+  ]
   })
 
   if(!user){
@@ -161,10 +164,11 @@ const logoutUser=asyncHandler (async(req,res)=>{
    }
  )
 
-  const options ={
-    httpOnly:true,
-    secure:true
-  }
+const options = {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax"
+};
 
   return res
   .status(200)
@@ -197,25 +201,29 @@ const refreshAccessToken =asyncHandler(async(req,res)=>{
      throw new ApiError(401,"Refresh Token is expired or used")
    }
  
-   const options={
-     httpOnly:true,
-     secure:true
-   }
+  const options = {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax"
+};
+
  
-  const{accessToken,newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
- 
-   return res
-   .status(200)
-   .cookie("accessToken", accessToken,options)
-   .cookie("refreshToken",newRefreshToken,options)
-   .json(
-     new ApiResponse(
-       200,
-       {accessToken,refreshToken:newRefreshToken},
-       "Access Refresh Token Refreshed"
-     )
-   )
- } catch (error) {
+  const { accessToken, refreshToken } =
+  await generateAccessAndRefreshTokens(user._id);
+
+return res
+  .status(200)
+  .cookie("accessToken", accessToken, options)
+  .cookie("refreshToken", refreshToken, options)
+  .json(
+    new ApiResponse(
+      200,
+      { accessToken, refreshToken },
+      "Access token refreshed successfully"
+    )
+  );
+
+  } catch (error) {
    throw new ApiError(401,error?.message || "Invalid refresh token");
    
  }
@@ -247,9 +255,12 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
 
 const getCurrentUser= asyncHandler(async(req,res)=>{
 
-  return res
-  .status(200)
-  .json(200,req.user,"Current User fetched sucessfully")
+return res
+.status(200)
+.json(
+  new ApiResponse(200, req.user, "Current user fetched successfully")
+);
+
 
 });
 
@@ -263,7 +274,7 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     throw new ApiError(400, "All feilds are required")
   }
 
-  User.findByIdAndUpdate(
+  const user = awaitUser.findByIdAndUpdate(
          req.user?._id,
          {
           $set:{
@@ -272,18 +283,19 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
           }
          },
          { new:true}
-  ).select("--password")
+  ).select("-password -refreshToken")
+
 
   return res
   .status(200)
-  .json(200, "Account details updated sucessfully")
+  .json(new ApiResponse(200, user, "Account details updated successfully"))
 });
 
 
 
 const updateUserProfilePic = asyncHandler(async(req,res)=>{
 
-  const profilePicLocalPath = req.files?.path
+  const profilePicLocalPath = req.file?.path
 
   if(!profilePicLocalPath){
     throw new ApiError(400,"Profile picture is missing")
@@ -295,7 +307,8 @@ const updateUserProfilePic = asyncHandler(async(req,res)=>{
      throw new ApiError(400,"Error while uploading Profile Picture ")
   }
 
-  const user = await User.findByIdAndUpdate(
+const user = await User.findByIdAndUpdate
+(
     req.user?._id,
     {
       $set:{
@@ -303,11 +316,15 @@ const updateUserProfilePic = asyncHandler(async(req,res)=>{
       }
     },
     {new:true}
-  ).select("--password")
+  ).select("-password -refreshToken")
 
-   return res
+
+  return res
   .status(200)
-  .json(200, "Profile picture details updated sucessfully")
+  .json(
+  new ApiResponse(200, user, "Profile picture updated successfully")
+);
+
 })
 
 
