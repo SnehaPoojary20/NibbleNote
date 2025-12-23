@@ -6,137 +6,119 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 
 
 
-const addRestaurantDetails = asyncHandler(async(req,res,next)=>{
+const addRestaurantDetails = asyncHandler(async (req, res) => {
+  const { name, address, coordinates, cuisine } = req.body;
 
-    const {name, address, location, cuisine , image } = req.body;
+  if (!name || !address || !coordinates || !cuisine) {
+    throw new ApiError(400, "All fields are required");
+  }
 
-    if(!name || !address || !location || !cuisine){
-        throw new ApiError(400, "All fields are required");
-    }
+  const existingRestaurant = await Restaurant.findOne({
+    name,
+    "coordinates.lat": coordinates.lat,
+    "coordinates.lng": coordinates.lng,
+  });
 
-    const existingRestaurant = await Restaurant.findOne({ name, "coordinates.lat": location.lat, "coordinates.lng": location.lng });
+  if (existingRestaurant) {
+    throw new ApiError(409, "Restaurant already exists at this location");
+  }
 
-   if (existingRestaurant) {
-      throw new ApiError(409, "Restaurant already exists at this location");
-   }
+  if (!req.files?.image?.length) {
+    throw new ApiError(400, "Restaurant image is required");
+  }
 
- let imageLocalPath;
+  const imageLocalPath = req.files.image[0].path;
+  const uploadedImage = await uploadOnCloudinary(
+    imageLocalPath,
+    "restaurant_images"
+  );
 
-   if (req.files?.image?.length > 0) {
-     imageLocalPath = req.files.image[0].path;
-   }
+  if (!uploadedImage?.secure_url) {
+    throw new ApiError(500, "Failed to upload restaurant image");
+  }
 
-   if(!imageLocalPath){
-        throw new ApiError(400, "Restaurant image is required");
-   }
+  const restaurant = await Restaurant.create({
+    name,
+    address,
+    coordinates,
+    cuisine,
+    image: uploadedImage.secure_url,
+    createdBy: req.user._id,
+  });
 
-   const uploadedImage= await uploadOnCloudinary(imageLocalPath,"restaurant_images");
-
-   if(!uploadedImage?.secure_url ){
-        throw new ApiError(500, "Failed to upload restaurant image");
-   }
-
-   const restaurant = new Restaurant({
-         name,
-         address,
-         coordinates: location,
-         cuisine,
-         image: uploadedImage.url,
-         createdBy: req.user._id,
-   });
-   
-   await restaurant.save();
-
-   const savedRestaurant = await Restaurant.findById(restaurant._id);
-
-   if(!savedRestaurant){
-        throw new ApiError(500, "Failed to add restaurant");
-   }
-
-   res
-   .status(201)
-   .json(new ApiResponse(true, "Restaurant added successfully", savedRestaurant));
- });
+  res
+    .status(201)
+    .json(new ApiResponse(true, "Restaurant added successfully", restaurant));
+});
 
 
 
- const updateRestaurantDetails = asyncHandler(async(req,res,next)=>{
-      
-     const { restaurantId } = req.params;
+ const updateRestaurantDetails = asyncHandler(async (req, res) => {
+  const { restaurantId } = req.params;
+  const { name, address, coordinates, cuisine } = req.body;
 
-     const { name, address, location, cuisine , image } = req.body;
+  const restaurant = await Restaurant.findById(restaurantId);
+  if (!restaurant) throw new ApiError(404, "Restaurant not found");
 
-     const restaurant = await Restaurant.findById(restaurantId);
+  if (restaurant.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized");
+  }
 
-     if(!restaurant){
-        throw new ApiError(404, "Restaurant not found");
-     }
+  let imageUrl = restaurant.image;
 
-   if(restaurant.createdBy.toString() !== req.user._id.toString()){
-      throw new ApiError(403, "You are not authorized to update this restaurant")
- };
+  if (req.files?.image?.length) {
+    const uploadedImage = await uploadOnCloudinary(
+      req.files.image[0].path,
+      "restaurant_images"
+    );
+    imageUrl = uploadedImage.secure_url;
+  }
 
-   const updatedRestaurant = await Restaurant.findByIdAndUpdate(
-      restaurantId,
-      {
-         $set: {
-            name,
-            address,
-            coordinates: location,
-            cuisine,
-            image: uploadedImage?.url || restaurant.image
-         }
+  const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+    restaurantId,
+    {
+      $set: {
+        name,
+        address,
+        coordinates,
+        cuisine,
+        image: imageUrl,
       },
-      { new: true }
-   );
+    },
+    { new: true }
+  );
 
-   if(!updatedRestaurant){
-      throw new ApiError(500, "Failed to update restaurant");
-   }
-
-   res
-   .status(200)
-   .json(new ApiResponse(true, "Restaurant updated successfully", updatedRestaurant));
- });
+  res
+    .status(200)
+    .json(new ApiResponse(true, "Restaurant updated successfully", updatedRestaurant));
+});
 
 
 
-const getAllRestaurants = asyncHandler(async(req,res,next)=>{
-   
-   const {name , cusine,search, page = 1, limit = 10}= req.query;
+const getAllRestaurants = asyncHandler(async (req, res) => {
+  const { name, cuisine, search, page = 1, limit = 10 } = req.query;
 
-   const filter = { isActive: true };
+  const filter = { isActive: true };
 
-   if(name){
-      filter.name = name;
-   }
+  if (name) filter.name = name;
+  if (cuisine) filter.cuisine = cuisine;
 
-   if(cusine){
-      filter.cusine = cusine;
-   }
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { cuisine: { $regex: search, $options: "i" } },
+      { address: { $regex: search, $options: "i" } },
+    ];
+  }
 
-   if(search){
-      filter.$or = [
-         { name: { $regex: search, $options: "i" } },    
-         { cuisine: { $regex: search, $options: "i" } }
-      ];
-   }
+  const restaurants = await Restaurant.find(filter)
+    .skip((page - 1) * limit)
+    .limit(Number(limit))
+    .sort({ createdAt: -1 });
 
-   const allRestaurants = await Restaurant.find(filter)
-     .skip((page - 1) * limit)
-     .limit(Number(limit))
-     .sort({ createdAt: -1 });
-
-   
-   if(!allRestaurants){
-      throw new ApiError(404, "Restaurants not found");
-   }
-
-   res
-   .status(200)
-   .json(new ApiResponse(true, "Restaurants fetched successfully",allRestaurants));
-
-
+  res
+    .status(200)
+    .json(new ApiResponse(true, "Restaurants fetched successfully", restaurants));
 });
 
 
@@ -182,25 +164,14 @@ const deleteRestaurant = asyncHandler(async(req,res,next)=>{
 
 
 
-const updateRestuarantRating = asyncHandler(async(req,res,next)=>{
+export {
+  addRestaurantDetails,
+  updateRestaurantDetails,
+  getAllRestaurants,
+  getRestaurantById,
+  deleteRestaurant
+};
 
-   const { restaurantId } = req.params;
-
-   const restaurant = await Restaurant.findById(restaurantId);
-
-   if(!restaurant){
-     return
-   }  
-
-   restaurant.avgRating = (restaurant.avgRating * restaurant.totalReviews + newRating) / (restaurant.totalReviews + 1);
-
-   restaurant.totalReviews += 1;
-
-   await restaurant.save();
-});
-
-
-export {addRestaurantDetails, updateRestaurantDetails, getAllRestaurants, getRestaurantById, deleteRestaurant, updateRestuarantRating};
 
 
 

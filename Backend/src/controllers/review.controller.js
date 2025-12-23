@@ -3,25 +3,47 @@ import { ApiError } from "../utils/ApiError.js";
 import { Review } from "../models/review.model.js";
 import { Restaurant } from "../models/restaurant.model.js";
 import {ApiResponse} from "../utils/ApiResponse.js"
+import mongoose from "mongoose";
 
 
 
-const addReview = asyncHandler(async(req,res)=>{
+const recalculateRestaurantStats = async (restaurantId) => {
+  const stats = await Review.aggregate([
+    {
+      $match: {
+        restaurantId: new mongoose.Types.ObjectId(restaurantId),
+      },
+    },
+    {
+      $group: {
+        _id: "$restaurantId",
+        avgRating: { $avg: "$rating" },
+        totalReviews: { $sum: 1 },
+      },
+    },
+  ]);
 
+  await Restaurant.findByIdAndUpdate(restaurantId, {
+    avgRating: stats[0]?.avgRating || 0,
+    totalReviews: stats[0]?.totalReviews || 0,
+  });
+};
+
+
+
+const addReview = asyncHandler(async (req, res) => {
   const { restaurantId, rating, comment } = req.body;
   const userId = req.user._id;
 
-   // Validate input
-   if (!restaurantId || !rating || !comment) {
+  if (!restaurantId || !rating || !comment) {
     throw new ApiError(400, "All fields are required");
   }
 
   const numericRating = Number(rating);
-    if (numericRating < 1 || numericRating > 5) {
+  if (numericRating < 1 || numericRating > 5) {
     throw new ApiError(400, "Rating must be between 1 and 5");
   }
 
-    // Prevent multiple reviews by same user
   const existingReview = await Review.findOne({ userId, restaurantId });
   if (existingReview) {
     throw new ApiError(409, "You have already reviewed this restaurant");
@@ -34,52 +56,25 @@ const addReview = asyncHandler(async(req,res)=>{
     comment,
   });
 
-    //update restuarant stats
-    const stats = await Review.aggregate([  
-        {$match:{restaurantId:review.restaurantId}},
-        {
-            $group:{
-            _id:"$restaurantId",
-            avgRating:{$avg:"$rating"},
-            totalReviews:{$sum:1}
-            }
-        }
-    ]); 
+  await recalculateRestaurantStats(restaurantId);
 
-    await Restaurant.findByIdAndUpdate(restaurantId,{
-        avgRating:stats[0]?.avgRating ,
-        totalReviews:stats[0]?.totalReviews ,
-    });
-
-    res
-    .status(201)
-    .json(new ApiResponse(201, review, "Review added successfully") )
-
+  res.status(201).json(
+    new ApiResponse(true, "Review added successfully", review)
+  );
 });
 
 
 
-const getReviewsByRestaurant = asyncHandler(async(req,res)=>{
+const getReviewsByRestaurant = asyncHandler(async (req, res) => {
+  const { restaurantId } = req.params;
 
-    const restaurantId = req.params;
+  const reviews = await Review.find({ restaurantId })
+    .populate("userId", "username")
+    .sort({ createdAt: -1 });
 
-    if(!restaurantId){
-        throw new ApiError(400,"Restaurant ID is required");
-    }
-
-    const reviews = await Review
-                       .find({restaurantId})
-                       .populate('userId','username')
-                       .sort({ createdAt: -1 });;
-
-    if(!reviews || reviews.length===0){
-        throw new ApiError(404,"No reviews found for this restaurant");
-    }
-
-    res
-    .status(200)
-    .json({success:true,
-        message:"Fetched reviews successfully",});
+  res.status(200).json(
+    new ApiResponse(true, "Fetched reviews successfully", reviews)
+  );
 });
 
 
@@ -106,9 +101,11 @@ const updateReview = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Rating must be between 1 and 5");
   }
 
-  review.rating = numericRating;
-  review.comment = comment;
-  await review.save();
+ review.rating = numericRating;
+review.comment = comment;
+await review.save();
+
+await recalculateRestaurantStats(review.restaurantId);
 
   res.status(200).json(
     new ApiResponse(200, review, "Review updated successfully")
@@ -117,25 +114,25 @@ const updateReview = asyncHandler(async (req, res) => {
 
 
 
-const deleteReview = asyncHandler(async(req,res)=>{
-     const { reviewId } = req.params;
+const deleteReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
 
-     const review = await Review.findById(reviewId);
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiError(404, "Review not found");
+  }
 
-    if(!review){
-        throw new ApiError(400,"Review not found");
-    }
+  if (review.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this review");
+  }
 
-    if(review.userId.toString() !== req.user._id.toString()){
-        throw new ApiError(403,"You are not authorized to delete this review");
-    }
+  const restaurantId = review.restaurantId;
 
-    await review.deleteOne();
+  await review.deleteOne();
+  await recalculateRestaurantStats(restaurantId);
 
-     res
-     .status(200)
-     .json(
-    new ApiResponse(200, null, "Review deleted successfully")
+  res.status(200).json(
+    new ApiResponse(true, "Review deleted successfully", null)
   );
 });
 
