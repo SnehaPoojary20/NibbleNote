@@ -32,6 +32,11 @@ const reviewSchema = new Schema(
   }
 );
 
+reviewSchema.index(
+  { userId: 1, restaurantId: 1 },
+  { unique: true }
+);
+
 reviewSchema.plugin(mongooseAggregatePaginate);
 
 export const Review = mongoose.model("Review", reviewSchema);

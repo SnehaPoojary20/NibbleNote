@@ -39,6 +39,11 @@ const addReview = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
+  const restaurant = await Restaurant.findById(restaurantId);
+  if (!restaurant || !restaurant.isActive) {
+    throw new ApiError(404, "Restaurant not found");
+  }
+
   const numericRating = Number(rating);
   if (numericRating < 1 || numericRating > 5) {
     throw new ApiError(400, "Rating must be between 1 and 5");
