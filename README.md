@@ -1,0 +1,61 @@
+## NibbleNote
+NibbleNote is a full-stack restaurant review and discovery platform that allows users to explore restaurants, share reviews, and discover locations through an interactive map experience.
+The project focuses heavily on backend API design, authentication, and database modeling, with frontend features being iteratively enhanced.
+
+## Why this project matters
+I created NibbleNote to give real users a space to share honest restaurant experiences without manipulation or bias. The idea was to build a platform where reviews genuinely help other users make better choices, while also allowing restaurants to learn from authentic feedback even when the feedback doesn’t come directly from their own customers. The focus is on trust, transparency, and building a system that values real experiences over curated opinions.
+
+## Engineering Focus
+This project emphasizes backend correctness over UI polish. Key learnings include JWT-based auth with refresh tokens, protected route middleware, MongoDB relational modeling (users–restaurants–reviews), and API testing via Postman before frontend integration. Special attention was given to token lifecycle management, middleware-based authorization, and schema-level data consistency.
+
+## Tech Stack
+Frontend: React.js, CSS, Bootstrap (UI in progress)
+Backend: Node.js, Express.js  
+Database: MongoDB  
+Authentication: JWT  
+APIs: Google Maps API  
+Deployment: Vercel  
+
+## Features
+- User authentication and authorization using JWT
+- Backend APIs to create and manage restaurant reviews
+- Location-based restaurant discovery
+- Protected routes for authenticated users
+- RESTful backend APIs with structured MongoDB schemas
+
+## Architecture Overview
+- Frontend communicates with backend via REST APIs
+- Express.js handles routing, middleware, and authentication
+- MongoDB stores users, restaurants, and reviews
+- JWT secures protected endpoints
+
+## Setup Instructions
+1. Clone the repository
+2. Install dependencies using npm install
+3. Configure environment variables
+4. Run the application locally
+5. Start backend server and frontend client separately
+
+## Environment Variables
+PORT=
+MONGODB_URI=
+CORS_ORIGIN=
+ACCESS_TOKEN_SECRET=
+ACCESS_TOKEN_EXPIRY=
+REFRESH_TOKEN_SECRET=
+REFRESH_TOKEN_EXPIRY=
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+## Status
+Backend core features are implemented. Frontend enhancements and optimizations are currently in progress.
+
+API endpoints are tested using Postman and follow RESTful design principles.
+
+## Future Improvements
+- Advanced review moderation and spam detection
+- Rating aggregation optimizations
+- Improved search and filtering based on cuisine and location
+- Frontend performance and UI enhancements
