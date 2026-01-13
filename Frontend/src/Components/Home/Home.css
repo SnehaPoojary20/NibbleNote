@@ -1,10 +1,9 @@
-.home {
+/* HERO */
+.hero {
   position: relative;
   height: 100vh;
   background-color: black;
   overflow: hidden;
-  margin-top: 10vh;
-  margin-bottom: 20vh;
 }
 
 .slider {
@@ -12,11 +11,12 @@
   inset: 0;
   background-size: cover;
   background-position: center;
+  filter: brightness(0.45);
   transition: background-image 1s ease-in-out;
-  filter: brightness(0.4); /* Dark overlay */
+  z-index: 1;
 }
 
-.home h1 {
+.hero h1 {
   position: relative;
   z-index: 2;
   color: white;
@@ -24,4 +24,25 @@
   text-align: center;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* ABOUT */
+.about {
+  background-color: black;
+  color: white;
+  padding: 6rem 2rem;
+  text-align: center;
+}
+
+.about h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.about p {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  opacity: 0.85;
 }

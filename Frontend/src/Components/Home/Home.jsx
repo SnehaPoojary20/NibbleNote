@@ -19,20 +19,31 @@ const Home = () => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="home">
-      <div
-        className="slider"
-        style={{ backgroundImage: `url(${images[index]})` }}
-      ></div>
+    <>
+     // Hero section
+      <section className="hero">
+        <div
+          className="slider"
+          style={{ backgroundImage: `url(${images[index]})` }}
+        />
+        <h1>Discover. Taste. Remember</h1>
+      </section>
 
-      <h1>Discover. Taste. Remember</h1>
-    </div>
+      // about section
+      <section className="about">
+        <h2>Why NibbleNote?</h2>
+        <p>
+          NibbleNote helps food lovers discover honest reviews, hidden gems,
+          and remember every great bite through personal food journals.
+        </p>
+      </section>
+    </>
   );
 };
 
 export default Home;
+
