@@ -59,3 +59,9 @@ API endpoints are tested using Postman and follow RESTful design principles.
 - Rating aggregation optimizations
 - Improved search and filtering based on cuisine and location
 - Frontend performance and UI enhancements
+
+
+## 📸 Screenshots
+
+### Home Page
+![NibbleNote Home](screenshots/home.png)
