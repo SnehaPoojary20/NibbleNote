@@ -1,41 +1,38 @@
 import React from "react";
 import "./Navbar.css";
+import { Link } from "react-router-dom";
+
 
 const Navbar = () => {
   return (
-    <div className="app-navbar">
-      <div className="navbar-content">
+   <div className="app-navbar">
+  <div className="navbar-content">
 
-        {/* LEFT */}
-        <div className="nav-left">
-          <a className="nav-item-link" href="#">Profile</a>
-        </div>
+    <Link className="nav-item-link" to="/profile">Profile</Link>
 
-        {/* CENTER */}
-        <form className="search-form">
-          <input
-            className="form-control"
-            type="search"
-            placeholder="Search places, cuisines..."
-          />
-          <button className="btn btn-outline-dark">
-            Discover
-          </button>
-        </form>
+    <form className="search-form">
+      <input
+        className="form-control"
+        type="search"
+        placeholder="Search places, cuisines..."
+      />
+      <button className="btn btn-outline-dark">Discover</button>
+    </form>
 
-        {/* RIGHT */}
-        <div className="nav-actions">
-          <a className="nav-item-link" href="#">Restaurants</a>
-          <a className="nav-item-link" href="#">+ Add Restaurant</a>
-          <button className="btn btn-outline-dark">Login</button>
-          <button className="btn btn-outline-dark">Logout</button>
-        </div>
+    <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
+    <Link className="nav-item-link" to="/add-restaurant">+ Add Restaurant</Link>
 
-      </div>
-    </div>
+    <button className="btn btn-outline-dark">Login</button>
+
+  </div>
+</div>
+
   );
 };
 
 export default Navbar;
+
+
+
 
 

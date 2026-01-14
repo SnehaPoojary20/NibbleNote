@@ -24,7 +24,7 @@ const Home = () => {
 
   return (
     <>
-     // Hero section
+   
       <section className="hero">
         <div
           className="slider"
@@ -33,7 +33,7 @@ const Home = () => {
         <h1>Discover. Taste. Remember</h1>
       </section>
 
-      // about section
+     
       <section className="about">
         <h2>Why NibbleNote?</h2>
         <p>
