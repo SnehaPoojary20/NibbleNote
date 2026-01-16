@@ -22,7 +22,7 @@ const Navbar = () => {
     <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
     <Link className="nav-item-link" to="/add-restaurant">+ Add Restaurant</Link>
 
-    <button className="btn btn-outline-dark">Login</button>
+    <Link className="nav-item-link" to="/login">Login </Link>
 
   </div>
 </div>
