@@ -65,3 +65,6 @@ API endpoints are tested using Postman and follow RESTful design principles.
 
 ### Home Page
 ![NibbleNote Home](screenshots/home.png)
+
+### Add Restaurant Page
+![Add Restaurant ](screenshots/AddRestaurant.png)
