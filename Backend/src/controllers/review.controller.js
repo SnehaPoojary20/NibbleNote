@@ -106,7 +106,7 @@ const updateReview = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Rating must be between 1 and 5");
   }
 
- review.rating = numericRating;
+review.rating = numericRating;
 review.comment = comment;
 await review.save();
 
