@@ -116,3 +116,13 @@
   font-size: 18px;
 }
 
+.upload-box {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-box input {
+  color: white;
+}

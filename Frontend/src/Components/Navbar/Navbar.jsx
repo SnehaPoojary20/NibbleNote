@@ -8,7 +8,7 @@ const Navbar = () => {
    <div className="app-navbar">
   <div className="navbar-content">
 
-    <Link className="nav-item-link" to="/profile">Profile</Link>
+    <Link className="nav-item-link" to="/api/profile">Profile</Link>
 
     <form className="search-form">
       <input
@@ -19,10 +19,10 @@ const Navbar = () => {
       <button className="btn btn-outline-dark">Discover</button>
     </form>
 
-    <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
-    <Link className="nav-item-link" to="/add-restaurant">+ Add Restaurant</Link>
+    <Link className="nav-item-link" to="/api/restaurants">Restaurants</Link>
+    <Link className="nav-item-link" to="/api/add-restaurant">+ Add Restaurant</Link>
 
-    <Link className="nav-item-link" to="/login">Login </Link>
+    <Link className="nav-item-link" to="/api/login">Login </Link>
 
   </div>
 </div>

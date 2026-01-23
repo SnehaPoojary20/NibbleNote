@@ -1,109 +1,101 @@
 import { useEffect, useState } from "react";
+import api from "../../api/axios";
 import "./Profile.css";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
-  const [restaurants, setRestaurants] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchProfileData();
-  }, []);
-
-  const fetchProfileData = async () => {
+  //  Fetch logged-in user
+useEffect(() => {
+  const fetchProfile = async () => {
     try {
-      // 1. Get current user
-      const userRes = await fetch("http://localhost:5000/api/users/me", {
-        credentials: "include",
+      const res = await api.get("/users/me");
+      setUser(res.data.data);
+    } catch (err) {
+      setError("Failed to load profile");
+    }
+  };
+
+  fetchProfile();
+}, []);
+
+  //  Upload profile picture
+  const handleUpload = async () => {
+    if (!image) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("profilePic", image);
+
+      const res = await api.put("/users/update-profile-pic", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      const userData = await userRes.json();
-      setUser(userData.data);
 
-      const userId = userData.data._id;
+      // update UI instantly
+      setUser(res.data.data);
+      setImage(null);
 
-      // 2. Get restaurants added by user
-      const resRes = await fetch(
-        `http://localhost:5000/api/restaurants/user/${userId}`,
-        { credentials: "include" }
-      );
-      const resData = await resRes.json();
-      setRestaurants(resData.data || []);
-
-      // 3. Get comments by user
-      const comRes = await fetch(
-        `http://localhost:5000/api/comments/user/${userId}`,
-        { credentials: "include" }
-      );
-      const comData = await comRes.json();
-      setComments(comData.data || []);
-    } catch (error) {
-      console.error("Profile fetch failed:", error);
+    } catch (err) {
+      setError("Image upload failed");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <div className="profile-loading">Loading profile...</div>;
-  }
-
   if (!user) {
-    return <div className="profile-error">User not logged in</div>;
-  }
+  return <div className="profile-loading">Loading profile...</div>;
+}
+
 
   return (
-    <div className="profile-page">
-      {/* Profile Header */}
-      <div className="profile-card">
-        <img
-          src={user.profilePic}
-          alt="Profile"
-          className="profile-pic"
+    
+  <div className="profile-page">
+    
+    {/* Profile Header */}
+     <div className="profile-card">
+      <img
+        src={user.profilePic || "/default-avatar.png"}
+        alt="Profile"
+        className="profile-pic"
+      />
+
+      <h2>{user.username}</h2>
+      <p>{user.email}</p>
+
+      {/* Upload */}
+      <div className="upload-box">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
         />
-        <h2>{user.username}</h2>
-        <p>{user.email}</p>
+
+        <button
+          className="btn btn-primary mt-2"
+          onClick={handleUpload}
+          disabled={loading || !image}
+        >
+          {loading ? "Uploading..." : "Update Profile Picture"}
+        </button>
       </div>
 
-      {/* Restaurants */}
-      <section className="profile-section">
-        <h3>Restaurants Added</h3>
-
-        {restaurants.length === 0 ? (
-          <p className="empty-text">No restaurants added yet</p>
-        ) : (
-          <div className="restaurant-grid">
-            {restaurants.map((res) => (
-              <div key={res._id} className="restaurant-card">
-                <img src={res.image} alt={res.name} />
-                <h4>{res.name}</h4>
-                <p>{res.cuisine}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Comments */}
-      <section className="profile-section">
-        <h3>My Comments</h3>
-
-        {comments.length === 0 ? (
-          <p className="empty-text">No comments yet</p>
-        ) : (
-          <div className="comment-list">
-            {comments.map((comment) => (
-              <div key={comment._id} className="comment-card">
-                <p>{comment.text}</p>
-                <span>on {comment.restaurant?.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      {error && <p className="text-danger mt-2">{error}</p>}
     </div>
-  );
-};
+
+  </div>
+);
+
+  };
 
 export default Profile;
+
+
 
