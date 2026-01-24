@@ -56,17 +56,11 @@ for (let key in req.body) {
   }
 
   // Get local path of uploaded file
-  // const profilePicLocalPath = req.files?.profilePic?.[0]?.path;
-  let profilePicLocalPath;
+      const profilePicLocalPath = req.file?.path;
 
-// Multer with .fields() creates an object with arrays
-if (req.files && req.files.profilePic && req.files.profilePic.length > 0) {
-  profilePicLocalPath = req.files.profilePic[0].path;
-}
-
-if (!profilePicLocalPath) {
-  throw new ApiError(400, "Profile picture is required");
-}
+    if (!profilePicLocalPath) {
+       throw new ApiError(400, "Profile picture is required");
+   }
 
   // Upload to Cloudinary
   const uploadedProfilePic = await uploadOnCloudinary(profilePicLocalPath);
@@ -138,15 +132,13 @@ const loginUser =asyncHandler(async(req,res)=>{
   .status(200)
   .cookie("accessToken",accessToken,options)
   .cookie("refreshToken",refreshToken,options)
-  .json(
-    new ApiResponse(
-      200,{
-         user:loggegInUser , accessToken,
-         refreshToken
-      },
-      "User Logged In Sucessfully"
-    )
+ .json(
+  new ApiResponse(
+    200,
+    { user: loggegInUser },
+    "User Logged In Successfully"
   )
+);
 });
 
 

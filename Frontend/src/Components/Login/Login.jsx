@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import "./Login.css";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    username: "",
     email: "",
-    password: "",
+    password: ""
   });
 
-  const [profilePic, setProfilePic] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -21,82 +22,45 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    if (!profilePic) {
-      setError("Profile picture is required");
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      const data = new FormData();
-      data.append("username", formData.username);
-      data.append("email", formData.email);
-      data.append("password", formData.password);
-      data.append("profilePic", profilePic);
+      setLoading(true);
 
-      // ✅ send to correct endpoint
-      await api.post("/register", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post("/login", formData);
 
-      // redirect after success
-      window.location.href = "/profile";
+      
+      navigate("/profile");
     } catch (err) {
-      console.error(err.response || err);
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h2>Create Your Account</h2>
+    <div className="auth-container">
+      <form className="auth-card" onSubmit={handleSubmit}>
+        <h2>Login</h2>
 
-        <label>Username</label>
         <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          placeholder="Enter username"
-          required
-        />
-
-        <label>Email</label>
-        <input
-          type="email"
           name="email"
-          value={formData.email}
+          type="email"
+          placeholder="Email"
           onChange={handleChange}
-          placeholder="Enter email"
           required
         />
 
-        <label>Password</label>
         <input
-          type="password"
           name="password"
-          value={formData.password}
+          type="password"
+          placeholder="Password"
           onChange={handleChange}
-          placeholder="Enter password"
-          required
-        />
-
-        <label>Profile Picture</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setProfilePic(e.target.files[0])}
           required
         />
 
         {error && <p className="error-text">{error}</p>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating Account..." : "Continue"}
+        <button disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
