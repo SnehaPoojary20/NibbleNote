@@ -55,3 +55,12 @@
   background-color: green;
   color: white;
 }
+
+.logout-btn {
+  color: #d00000;
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  text-decoration: underline;
+}

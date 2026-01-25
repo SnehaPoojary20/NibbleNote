@@ -10,10 +10,10 @@ const Navbar = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await api.get("/me"); // backend route to get current user
-        setUser(res.data.data);
-      } catch (err) {
-        setUser(null); // not logged in
+        const res = await api.get("/me");
+        setUser(res.data.data);   // logged in
+      } catch {
+        setUser(null);           // not logged in
       }
     };
 
@@ -34,12 +34,14 @@ const Navbar = () => {
     <div className="app-navbar">
       <div className="navbar-content">
 
-         <Link className="nav-item-link" to="/">Home</Link>
+        <Link className="nav-item-link" to="/">Home</Link>
 
-        {/* Profile link always shows if logged in */}
-        {user && <Link className="nav-item-link" to="/profile">Profile</Link>}
+        {user && (
+          <Link className="nav-item-link" to="/profile">
+            Profile
+          </Link>
+        )}
 
-      
         <form className="search-form">
           <input
             className="form-control"
@@ -52,26 +54,27 @@ const Navbar = () => {
         <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
         <Link className="nav-item-link" to="/add-restaurant">+ Add Restaurant</Link>
 
-        {/* Conditional login/register or logout */}
-        {!user && (
+        {/* AUTH CONTROLS */}
+        {!user ? (
           <>
             <Link className="nav-item-link" to="/login">Login</Link>
             <Link className="nav-item-link" to="/register">Register</Link>
           </>
-        )}
-
-        {user && (
-          <span className="nav-item-link" style={{ cursor: "pointer" }} onClick={handleLogout}>
+        ) : (
+          <span
+            className="nav-item-link logout-btn"
+            onClick={handleLogout}
+          >
             Logout
           </span>
         )}
+
       </div>
     </div>
   );
 };
 
 export default Navbar;
-
 
 
 

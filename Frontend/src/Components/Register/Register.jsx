@@ -42,10 +42,8 @@ const Register = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      //  Option A - go to login
       navigate("/login");
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -53,8 +51,8 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
-      <form className="register-form" onSubmit={handleSubmit}>
+    <div className="auth-container">
+      <form className="auth-card" onSubmit={handleSubmit}>
         <h2>Create Account</h2>
 
         <input
@@ -88,10 +86,11 @@ const Register = () => {
           type="file"
           accept="image/*"
           onChange={(e) => setProfilePic(e.target.files[0])}
+          className="file-input"
           required
         />
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error-text">{error}</p>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Creating..." : "Register"}
