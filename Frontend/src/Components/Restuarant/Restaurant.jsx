@@ -10,9 +10,9 @@ const Restaurant = () => {
 useEffect(() => {
   const loadRestaurants = async () => {
     try {
-      const res = await api.get("http://localhost:2000/api/v1/restaurants");
+      const res = await api.get("/restaurants");
 
-      console.log("restaurants response:", res.data); // 👈 ADD HERE
+      console.log("restaurants response:", res.data); 
 
      setRestaurants(res.data.data || []);
     } catch (err) {
@@ -27,7 +27,7 @@ useEffect(() => {
   return (
     <div className="restaurant-page">
       <h2 className="page-title">Explore Restaurants</h2>
-
+        <p>Total restaurants: {restaurants.length}</p>
       <div className="restaurant-grid">
         {restaurants.map((r) => (
           <div

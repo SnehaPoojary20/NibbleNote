@@ -10,7 +10,7 @@ const RestaurantDetail = () => {
   useEffect(() => {
     const loadRestaurant = async () => {
       const res = await api.get(
-        `http://localhost:2000/api/v1/restaurants/${id}`
+        `restaurants/${id}`
       );
       setRestaurant(res.data.data);
     };

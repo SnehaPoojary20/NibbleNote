@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./AddRestaurant.css";
+import api from "../../api/axios"; 
 
 const AddRestaurant = () => {
   const [formData, setFormData] = useState({
@@ -27,56 +28,58 @@ const AddRestaurant = () => {
     setPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!formData.image) {
-      alert("Please upload a restaurant image");
-      return;
-    }
+  if (!formData.image) {
+    alert("Please upload a restaurant image");
+    return;
+  }
 
-    const data = new FormData();
-    data.append("name", formData.name);
-    data.append("address", formData.address);
-    data.append("cuisine", formData.cuisine);
-    data.append("coordinates[lat]", formData.lat);
-    data.append("coordinates[lng]", formData.lng);
-    data.append("image", formData.image);
+  const data = new FormData();
+  data.append("name", formData.name);
+  data.append("address", formData.address);
+  data.append("cuisine", formData.cuisine);
 
-    try {
-      setLoading(true);
+  // backend expects nested coordinates
+  data.append("coordinates[lat]", formData.lat);
+  data.append("coordinates[lng]", formData.lng);
 
-      const res = await fetch("http://localhost:5000/api/restaurants", {
-        method: "POST",
-        body: data,
-        credentials: "include",
-      });
+  // backend expects image field
+  data.append("image", formData.image);
 
-      const result = await res.json();
+  try {
+    setLoading(true);
 
-      if (!res.ok) {
-        throw new Error(result.message || "Failed to add restaurant");
-      }
+    const res = await api.post("/restaurants", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-      alert("Restaurant added successfully ✅");
+    console.log("Created:", res.data);
 
-      // Reset form
-      setFormData({
-        name: "",
-        address: "",
-        cuisine: "",
-        lat: "",
-        lng: "",
-        image: null,
-      });
-      setPreview(null);
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    alert("Restaurant added successfully ✅");
+
+    setFormData({
+      name: "",
+      address: "",
+      cuisine: "",
+      lat: "",
+      lng: "",
+      image: null,
+    });
+
+    setPreview(null);
+
+  } catch (err) {
+    console.error("Add restaurant failed:", err.response?.data || err);
+    alert(err.response?.data?.message || "Failed to add restaurant");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="add-restaurant">

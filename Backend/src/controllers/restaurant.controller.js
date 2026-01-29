@@ -100,15 +100,19 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
 
   const filter = { isActive: true };
 
-  if (name) filter.name = name;
-  if (cuisine) filter.cuisine = cuisine;
+  if (name) filter.name = new RegExp(name, "i");
+  if (cuisine) filter.cuisine = new RegExp(cuisine, "i");
 
   if (search) {
-    filter.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { cuisine: { $regex: search, $options: "i" } },
-      { address: { $regex: search, $options: "i" } },
-    ];
+    const words = search.trim().split(/\s+/); // split by spaces
+
+    filter.$and = words.map((word) => ({
+      $or: [
+        { name: { $regex: word, $options: "i" } },
+        { cuisine: { $regex: word, $options: "i" } },
+        { address: { $regex: word, $options: "i" } },
+      ],
+    }));
   }
 
   const restaurants = await Restaurant.find(filter)
@@ -117,10 +121,10 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 });
 
   res.status(200).json({
-  success: true,
-  data: restaurants,
-  message: "Restaurants fetched successfully"
-});
+    success: true,
+    data: restaurants,
+    message: "Restaurants fetched successfully",
+  });
 });
 
 

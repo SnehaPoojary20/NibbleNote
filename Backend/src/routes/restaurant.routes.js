@@ -10,10 +10,16 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/", verifyJWT, addRestaurantDetails);
+router.post("/", 
+            verifyJWT,  
+            upload.fields([{ name: "image", maxCount: 1 }]), 
+            addRestaurantDetails);
 router.get("/", getAllRestaurants);
 router.get("/:restaurantId", getRestaurantById);
-router.put("/:restaurantId", verifyJWT, updateRestaurantDetails);
+router.put("/:restaurantId",
+             verifyJWT, 
+             upload.fields([{ name: "image", maxCount: 1 }]), 
+             updateRestaurantDetails);
 router.delete("/:restaurantId", verifyJWT, deleteRestaurant);
 
 export default router;
