@@ -96,35 +96,41 @@ const addRestaurantDetails = asyncHandler(async (req, res) => {
 
 
 const getAllRestaurants = asyncHandler(async (req, res) => {
-  const { name, cuisine, search, page = 1, limit = 10 } = req.query;
+  try {
+    const { name, cuisine, search, page = 1, limit = 10 } = req.query;
 
-  const filter = { isActive: true };
+    const filter = { isActive: true };
 
-  if (name) filter.name = new RegExp(name, "i");
-  if (cuisine) filter.cuisine = new RegExp(cuisine, "i");
+    if (name) filter.name = { $regex: name, $options: "i" };
+    if (cuisine) filter.cuisine = { $regex: cuisine, $options: "i" };
 
-  if (search) {
-    const words = search.trim().split(/\s+/); // split by spaces
+    if (search && typeof search === "string") {
+      const words = search.trim().split(/\s+/);
+      if (words.length > 0) {
+        filter.$and = words.map(word => ({
+          $or: [
+            { name: { $regex: word, $options: "i" } },
+            { cuisine: { $regex: word, $options: "i" } },
+            { address: { $regex: word, $options: "i" } },
+          ],
+        }));
+      }
+    }
 
-    filter.$and = words.map((word) => ({
-      $or: [
-        { name: { $regex: word, $options: "i" } },
-        { cuisine: { $regex: word, $options: "i" } },
-        { address: { $regex: word, $options: "i" } },
-      ],
-    }));
+    const restaurants = await Restaurant.find(filter)
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: restaurants,
+      message: "Restaurants fetched successfully",
+    });
+  } catch (err) {
+    console.error("Error in getAllRestaurants:", err);
+    throw new ApiError(500, "Failed to fetch restaurants");
   }
-
-  const restaurants = await Restaurant.find(filter)
-    .skip((page - 1) * limit)
-    .limit(Number(limit))
-    .sort({ createdAt: -1 });
-
-  res.status(200).json({
-    success: true,
-    data: restaurants,
-    message: "Restaurants fetched successfully",
-  });
 });
 
 

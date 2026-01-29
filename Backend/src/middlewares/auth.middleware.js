@@ -1,8 +1,7 @@
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import {User} from "../models/user.model.js"
-
+import { User } from "../models/user.model.js";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
@@ -10,31 +9,33 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
 
-    console.log("Token received:", token);
-
     if (!token) {
-      throw new ApiError(401, "Unauthorized Request");
+      return next(new ApiError(401, "Unauthorized Request"));
     }
 
-    const decodedToken = jwt.verify(
-      token,
-      process.env.ACCESS_TOKEN_SECRET
-    );
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+      return next(new ApiError(401, "Invalid or expired access token"));
+    }
 
-  
     const userId = decodedToken._id || decodedToken.id;
 
-    const user = await User.findById(userId).select(
-      "-password -refreshToken"
-    );
+    if (!userId) {
+      return next(new ApiError(401, "Invalid token payload"));
+    }
+
+    const user = await User.findById(userId).select("-password -refreshToken");
 
     if (!user) {
-      throw new ApiError(401, "Invalid Access Token");
+      return next(new ApiError(401, "User not found for this token"));
     }
 
     req.user = user;
     next();
   } catch (error) {
-    throw new ApiError(401, "Invalid Access Token");
+    console.error("verifyJWT error:", error);
+    next(new ApiError(500, "Internal server error in authentication"));
   }
 });

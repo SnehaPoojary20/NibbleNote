@@ -13,7 +13,7 @@ const Profile = () => {
     const loadProfile = async () => {
       try {
         //  Load logged in user
-        const res = await api.get("/users/me");
+        const res = await api.get("/me");
         setUser(res.data.data);
 
         //  Load user's reviews
@@ -24,7 +24,7 @@ const Profile = () => {
 
         //  Load all restaurants
         const restRes = await api.get(
-          "restaurants"
+          "/restaurants"
         );
 
         //  ADD THIS LINE RIGHT HERE
