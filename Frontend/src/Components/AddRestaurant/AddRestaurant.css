@@ -1,0 +1,78 @@
+.add-restaurant {
+  min-height: 100vh;
+  background: #111;
+  padding: 40px 0;
+}
+
+.add-restaurant h1 {
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 32px;
+}
+
+.restaurant-form-container {
+  display: flex;
+  justify-content: center;
+}
+
+.restaurant-form {
+  background: #ede9fe;
+  width: 500px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.restaurant-form input {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.restaurant-form input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.coordinates {
+  display: flex;
+  gap: 10px;
+}
+
+.coordinates input {
+  flex: 1;
+}
+
+.image-preview {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.restaurant-form button {
+  margin-top: 10px;
+  padding: 12px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.3s ease;
+}
+
+.restaurant-form button:hover {
+  background: #222;
+}
+
+.restaurant-form button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}

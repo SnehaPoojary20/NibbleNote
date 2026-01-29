@@ -10,7 +10,7 @@ const Navbar = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await api.get("/me");
+        const res = await api.get("/users/me");
         setUser(res.data.data);   // logged in
       } catch {
         setUser(null);           // not logged in

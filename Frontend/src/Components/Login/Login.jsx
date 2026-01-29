@@ -25,8 +25,7 @@ const Login = () => {
     try {
       setLoading(true);
 
-      await api.post("/login", formData);
-
+     await api.post("/users/login", formData);
       
       navigate("/profile");
     } catch (err) {

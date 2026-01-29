@@ -1,0 +1,32 @@
+.restaurant-detail {
+  background: black;
+  color: white;
+  min-height: 100vh;
+  padding: 40px;
+  display: flex;
+  gap: 40px;
+}
+
+.detail-img {
+  width: 420px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.detail-info h1 {
+  margin-bottom: 10px;
+  font-size: 32px;
+}
+
+.detail-info p {
+  font-size: 16px;
+  margin: 6px 0;
+}
+
+.loading {
+  color: white;
+  text-align: center;
+  padding: 100px;
+}

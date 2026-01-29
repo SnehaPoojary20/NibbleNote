@@ -13,18 +13,18 @@ const Profile = () => {
     const loadProfile = async () => {
       try {
         //  Load logged in user
-        const res = await api.get("/me");
+        const res = await api.get("/users/me");
         setUser(res.data.data);
 
         //  Load user's reviews
         const reviewRes = await api.get(
-          "http://localhost:2000/api/v1/reviews/user"
+          "/reviews/user"
         );
         setReviews(reviewRes.data.data);
 
         //  Load all restaurants
         const restRes = await api.get(
-          "http://localhost:2000/api/v1/restaurants"
+          "restaurants"
         );
 
         //  ADD THIS LINE RIGHT HERE

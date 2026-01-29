@@ -116,9 +116,11 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
     .limit(Number(limit))
     .sort({ createdAt: -1 });
 
-  res
-    .status(200)
-    .json(new ApiResponse(true, "Restaurants fetched successfully", restaurants));
+  res.status(200).json({
+  success: true,
+  data: restaurants,
+  message: "Restaurants fetched successfully"
+});
 });
 
 
