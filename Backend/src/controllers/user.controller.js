@@ -125,7 +125,7 @@ const loginUser =asyncHandler(async(req,res)=>{
   const options ={
     httpOnly: true,    // prevents JS from reading cookie
     secure: false,     // must be false on localhost
-    sameSite: "lax"    // prevents some CSRF, works fine locally
+    sameSite: "lax"    
   }
 
   return res
