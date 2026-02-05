@@ -1,21 +1,33 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../api/axios";
+import Review from "../Review/Review.jsx"
 import "./Restaurant.css";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
+
   const [restaurant, setRestaurant] = useState(null);
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    const loadRestaurant = async () => {
-      const res = await api.get(
-        `restaurants/${id}`
-      );
-      setRestaurant(res.data.data);
+    const loadData = async () => {
+      try {
+        const restaurantRes = await api.get(`/restaurants/${id}`);
+        setRestaurant(restaurantRes.data.data);
+
+        const reviewRes = await api.get(`/reviews/restaurant/${id}`);
+
+        // ✅ ENSURE ARRAY
+        setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
+
+      } catch (err) {
+        console.error("Load failed", err);
+        setReviews([]);
+      }
     };
 
-    loadRestaurant();
+    loadData();
   }, [id]);
 
   if (!restaurant) return <p className="loading">Loading...</p>;
@@ -23,18 +35,28 @@ const RestaurantDetail = () => {
   return (
     <div className="restaurant-detail">
 
-      <img className="detail-img" src={restaurant.image} />
-
-      <div className="detail-info">
-        <h1>{restaurant.name}</h1>
-        <p><strong>Location:</strong> {restaurant.address}</p>
-        <p><strong>Cuisine:</strong> {restaurant.cuisine}</p>
-
-        <h3>Ratings & Reviews coming here ⭐</h3>
+      <div className="image-wrapper">
+        <img src={restaurant.image} alt={restaurant.name} />
       </div>
+
+      <div className="restaurant-info">
+        <h1>{restaurant.name}</h1>
+
+        <div className="rating">
+          ⭐ {restaurant.avgRating?.toFixed(1) || "0.0"} / 5
+          <span>({restaurant.totalReviews || 0} reviews)</span>
+        </div>
+
+        <p><strong>Cuisine:</strong> {restaurant.cuisine}</p>
+        <p><strong>Address:</strong> {restaurant.address}</p>
+      </div>
+
+      {/* 👇 Reviews component */}
+      <Review reviews={reviews} />
 
     </div>
   );
 };
 
 export default RestaurantDetail;
+

@@ -13,7 +13,7 @@ const Profile = () => {
     const loadProfile = async () => {
       try {
         //  Load logged in user
-        const res = await api.get("/me");
+        const res = await api.get("/users/me");
         setUser(res.data.data);
 
         //  Load user's reviews

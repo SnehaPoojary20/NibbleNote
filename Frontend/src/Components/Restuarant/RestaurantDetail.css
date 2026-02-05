@@ -1,32 +1,77 @@
 .restaurant-detail {
-  background: black;
+  background: #0c0c0c;
   color: white;
   min-height: 100vh;
-  padding: 40px;
-  display: flex;
-  gap: 40px;
 }
 
-.detail-img {
-  width: 420px;
-  height: 320px;
+/* IMAGE */
+.image-wrapper img {
+  width: 100%;
+  height: 420px;
   object-fit: cover;
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  border-bottom: 3px solid #222;
 }
 
-.detail-info h1 {
-  margin-bottom: 10px;
-  font-size: 32px;
+/* INFO */
+.restaurant-info {
+  padding: 30px 60px;
 }
 
-.detail-info p {
-  font-size: 16px;
+.restaurant-info h1 {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.rating {
+  font-size: 18px;
+  color: #ffd700;
+  margin-bottom: 12px;
+}
+
+.rating span {
+  color: #aaa;
+  margin-left: 6px;
+}
+
+.restaurant-info p {
+  font-size: 17px;
   margin: 6px 0;
+  color: #ddd;
+}
+
+/* REVIEWS */
+.reviews-section {
+  padding: 20px 60px 60px;
+}
+
+.reviews-section h2 {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+}
+
+.review-card {
+  background: #181818;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.5);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: #ffd700;
+}
+
+.review-card p {
+  color: #ccc;
 }
 
 .loading {
   color: white;
   text-align: center;
-  padding: 100px;
+  padding: 150px;
+  font-size: 22px;
 }

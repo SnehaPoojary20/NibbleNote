@@ -40,13 +40,14 @@ const Login = () => {
       <form className="auth-card" onSubmit={handleSubmit}>
         <h2>Login</h2>
 
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          onChange={handleChange}
-          required
-        />
+       <input
+  name="email"
+  type="text"
+  placeholder="Email or Username"
+  onChange={handleChange}
+  required
+/>
+
 
         <input
           name="password"
