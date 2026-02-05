@@ -35,9 +35,11 @@ const RestaurantDetail = () => {
   return (
     <div className="restaurant-detail">
 
-      <div className="image-wrapper">
-        <img src={restaurant.image} alt={restaurant.name} />
-      </div>
+     <img 
+  src={`http://localhost:5000${restaurant.image}`} 
+  alt={restaurant.name} 
+/>
+
 
       <div className="restaurant-info">
         <h1>{restaurant.name}</h1>
