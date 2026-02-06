@@ -8,7 +8,8 @@ import {
   deleteRestaurant,
 } from "../controllers/restaurant.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
- 
+import { generateVibeCheck } from "../controllers/review.controller.js";
+
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.put("/:restaurantId",
   upload.fields([{ name: "image", maxCount: 1 }]), 
   updateRestaurantDetails
 );
+router.get("/:restaurantId/vibe", generateVibeCheck);
 
 router.delete("/:restaurantId", verifyJWT, deleteRestaurant);
 

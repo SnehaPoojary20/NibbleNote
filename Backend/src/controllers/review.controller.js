@@ -4,6 +4,8 @@ import { Review } from "../models/review.model.js";
 import { Restaurant } from "../models/restaurant.model.js";
 import {ApiResponse} from "../utils/ApiResponse.js"
 import mongoose from "mongoose";
+import redis from "../utils/redisClient.js";
+import axios from "axios";
 
 
 
@@ -112,9 +114,11 @@ await review.save();
 
 await recalculateRestaurantStats(review.restaurantId);
 
-  res.status(200).json(
-    new ApiResponse(200, review, "Review updated successfully")
-  );
+ res
+ .status(200)
+ .json(
+  new ApiResponse(true, "Review updated successfully", review)
+);
 });
 
 
@@ -151,16 +155,57 @@ const getUserReviews = asyncHandler(async(req,res)=>{
     .populate("restaurantId", "name")
     .sort({ createdAt: -1 });
 
-    res
-    .status(200)
-    .json(new ApiResponse(200, reviews, "Fetched user reviews successfully")
+   res
+   .status(200)
+   .json(
+  new ApiResponse(true, "Fetched user reviews successfully", reviews)
+);
+});
+
+
+
+const generateVibeCheck = asyncHandler(async (req, res) => {
+
+  const { restaurantId } = req.params;
+
+  const reviews = await Review.find({ restaurantId })
+    .limit(150)
+    .select("comment");
+
+  const texts = reviews.map(r => r.comment);
+
+  const cacheKey = `vibe:${restaurantId}`;
+
+  const cached = await redis.get(cacheKey);
+
+if (cached) {
+  return res.json(
+    new ApiResponse(true, "Vibe fetched from cache", JSON.parse(cached))
+  );
+}
+
+const prompt = `
+Summarize these reviews into 3 short vibe points:
+${texts.join("\n")}
+`;
+
+  const llmRes = await axios.post(process.env.LLM_API_URL, {
+    prompt,
+    max_tokens: 120
+  });
+
+  const summary = llmRes.data.output;
+
+  await redis.set(cacheKey, JSON.stringify(summary), "EX", 86400);
+
+  res.json(
+    new ApiResponse(true, "Vibe generated", summary)
   );
 });
 
 
 
-
-export{addReview,getReviewsByRestaurant,updateReview,deleteReview,getUserReviews};
+export{addReview,getReviewsByRestaurant,updateReview,deleteReview,getUserReviews,generateVibeCheck};
 
 // add review
 //getReviewsByRestaurant
