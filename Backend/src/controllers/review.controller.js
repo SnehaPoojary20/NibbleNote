@@ -79,6 +79,7 @@ const getReviewsByRestaurant = asyncHandler(async (req, res) => {
     .populate("userId", "username")
     .sort({ createdAt: -1 });
 
+  
   res.status(200).json(
     new ApiResponse(true, "Fetched reviews successfully", reviews)
   );
@@ -112,7 +113,8 @@ review.rating = numericRating;
 review.comment = comment;
 await review.save();
 
-await recalculateRestaurantStats(review.restaurantId);
+ await recalculateRestaurantStats(review.restaurantId);
+ await redis.del(`vibe:${review.restaurantId}`);
 
  res
  .status(200)
@@ -139,6 +141,8 @@ const deleteReview = asyncHandler(async (req, res) => {
 
   await review.deleteOne();
   await recalculateRestaurantStats(restaurantId);
+  await redis.del(`vibe:${restaurantId}`);
+
 
   res.status(200).json(
     new ApiResponse(true, "Review deleted successfully", null)
@@ -174,17 +178,28 @@ const generateVibeCheck = asyncHandler(async (req, res) => {
 
   const texts = reviews.map(r => r.comment);
 
+  
+  if (!texts.length) {
+    return res.json(
+      new ApiResponse(true, "No reviews yet", [
+        "New place — be the first to review!",
+        "Fresh spot with growing buzz",
+        "No vibes yet, help shape it!"
+      ])
+    );
+  }
+
   const cacheKey = `vibe:${restaurantId}`;
 
   const cached = await redis.get(cacheKey);
 
-if (cached) {
-  return res.json(
-    new ApiResponse(true, "Vibe fetched from cache", JSON.parse(cached))
-  );
-}
+  if (cached) {
+    return res.json(
+      new ApiResponse(true, "Vibe fetched from cache", JSON.parse(cached))
+    );
+  }
 
-const prompt = `
+  const prompt = `
 Summarize these reviews into 3 short vibe points:
 ${texts.join("\n")}
 `;
@@ -202,6 +217,7 @@ ${texts.join("\n")}
     new ApiResponse(true, "Vibe generated", summary)
   );
 });
+
 
 
 
