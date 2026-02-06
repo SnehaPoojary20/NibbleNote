@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../api/axios";
-import Review from "../Review/Review.jsx"
-import "./Restaurant.css";
+import Review from "../Review/Review.jsx";
+import "./RestaurantDetail.css";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -17,10 +17,7 @@ const RestaurantDetail = () => {
         setRestaurant(restaurantRes.data.data);
 
         const reviewRes = await api.get(`/reviews/restaurant/${id}`);
-
-        // ✅ ENSURE ARRAY
         setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
-
       } catch (err) {
         console.error("Load failed", err);
         setReviews([]);
@@ -35,25 +32,28 @@ const RestaurantDetail = () => {
   return (
     <div className="restaurant-detail">
 
-     <img 
-  src={`http://localhost:5000${restaurant.image}`} 
-  alt={restaurant.name} 
-/>
+      {/* IMAGE */}
+      <div className="image-wrapper">
+        <img
+          src={`http://localhost:5000${restaurant.image}`}
+          alt={restaurant.name}
+        />
+      </div>
 
-
+      {/* INFO */}
       <div className="restaurant-info">
         <h1>{restaurant.name}</h1>
 
         <div className="rating">
           ⭐ {restaurant.avgRating?.toFixed(1) || "0.0"} / 5
-          <span>({restaurant.totalReviews || 0} reviews)</span>
+          <span> ({restaurant.totalReviews || 0} reviews)</span>
         </div>
 
         <p><strong>Cuisine:</strong> {restaurant.cuisine}</p>
         <p><strong>Address:</strong> {restaurant.address}</p>
       </div>
 
-      {/* 👇 Reviews component */}
+      {/* REVIEWS */}
       <Review reviews={reviews} />
 
     </div>
@@ -61,4 +61,5 @@ const RestaurantDetail = () => {
 };
 
 export default RestaurantDetail;
+
 

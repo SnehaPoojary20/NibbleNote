@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { Restaurant } from "../models/restaurant.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js"
-import Review from "../models/Review.js";
+import {Review} from "../models/review.model.js";
 import { generateVibeCheck } from "../controllers/review.controller.js";
 
 
