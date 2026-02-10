@@ -23,3 +23,14 @@ In an era of information overload, NibbleNote solves the "Review Fatigue" proble
 - **AI Vibe Check:** Instant LLM summaries of restaurant atmospheres.
 - **Geo-Fencing:** High-speed discovery within a 5km-50km radius.
 - **Secure Auth:** Advanced JWT lifecycle management (Access/Refresh tokens).
+
+
+## 🚀 Live Demo
+
+- 🌐 **Frontend (Vercel):**  
+  https://nibble-note.vercel.app
+
+- 🔗 **Backend API (Render):**  
+ https://nibblenote.onrender.com
+
+---
