@@ -7,18 +7,26 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const res = await api.get("/users/me");
-        setUser(res.data.data);   // logged in
-      } catch {
-        setUser(null);           // not logged in
-      }
-    };
+useEffect(() => {
+  const checkUser = async () => {
+    
+    const token = localStorage.getItem("token");
 
-    checkUser();
-  }, []);
+    if (!token) {
+      setUser(null);
+      return; //  don't call backend
+    }
+
+    try {
+      const res = await api.get("/users/me");
+      setUser(res.data.data);
+    } catch {
+      setUser(null);
+    }
+  };
+
+  checkUser();
+}, []);
 
   const handleLogout = async () => {
     try {
