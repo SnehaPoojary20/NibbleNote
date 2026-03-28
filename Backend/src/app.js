@@ -25,7 +25,10 @@ import reviewRoutes from './routes/review.routes.js'
 
 
 // routes declaration
-app.use("/api/v1/users",userRoutes)
+app.use("/api/v1/users", (req, res, next) => {
+  console.log("Users route hit:", req.method, req.url);
+  next();
+}, userRoutes);
 app.use("/api/v1/restaurants",restaurantRoutes)
 app.use("/api/v1/reviews",reviewRoutes)
 

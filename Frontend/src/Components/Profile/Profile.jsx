@@ -20,7 +20,11 @@ const Profile = () => {
         const reviewRes = await api.get(
           "/reviews/user"
         );
-        setReviews(reviewRes.data.data);
+        const reviewList = Array.isArray(reviewRes.data.data)
+        ? reviewRes.data.data
+        : reviewRes.data.data.reviews || [];
+
+        setReviews(reviewList);
 
         //  Load all restaurants
         const restRes = await api.get(
