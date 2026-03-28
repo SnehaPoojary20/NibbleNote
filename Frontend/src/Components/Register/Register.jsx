@@ -38,7 +38,7 @@ const Register = () => {
       data.append("password", formData.password);
       data.append("profilePic", profilePic);
 
-      await api.post("/register", data, {
+      await api.post("/users/register", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
