@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../api/axios";
-import Review from "../Review/Review.jsx";
 import "./RestaurantDetail.css";
 
 const RestaurantDetail = () => {
@@ -9,6 +8,8 @@ const RestaurantDetail = () => {
 
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [newReview, setNewReview] = useState("");
+  const [rating, setRating] = useState(5);
 
   useEffect(() => {
     const loadData = async () => {
@@ -20,42 +21,100 @@ const RestaurantDetail = () => {
         setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
       } catch (err) {
         console.error("Load failed", err);
-        setReviews([]);
       }
     };
 
     loadData();
   }, [id]);
 
+  const handleSubmitReview = async () => {
+    if (!newReview.trim()) return;
+
+    try {
+      const res = await api.post(`/reviews/${id}`, {
+        comment: newReview,
+        rating,
+      });
+
+      setReviews([res.data.data, ...reviews]);
+      setNewReview("");
+      setRating(5);
+    } catch (err) {
+      console.error("Review failed", err);
+    }
+  };
+
   if (!restaurant) return <p className="loading">Loading...</p>;
 
   return (
     <div className="restaurant-detail">
 
-      {/* IMAGE */}
-      <div className="image-wrapper">
-        <img
-          src={`http://localhost:5000${restaurant.image}`}
-          alt={restaurant.name}
-        />
+      {/* HERO IMAGE */}
+      <div className="hero">
+          <img
+    src={
+      restaurant.image?.startsWith("http")
+        ? restaurant.image
+        : `http://localhost:2000${restaurant.image}`
+    }
+    alt={restaurant.name}
+  />
+        <div className="overlay" />
+        <div className="hero-content">
+          <h1>{restaurant.name}</h1>
+          <p>{restaurant.cuisine}</p>
+        </div>
       </div>
 
-      {/* INFO */}
-      <div className="restaurant-info">
-        <h1>{restaurant.name}</h1>
-
+      {/* INFO CARD */}
+      <div className="info-card">
         <div className="rating">
-          ⭐ {restaurant.avgRating?.toFixed(1) || "0.0"} / 5
+          ⭐ {restaurant.avgRating?.toFixed(1) || "0.0"} 
           <span> ({restaurant.totalReviews || 0} reviews)</span>
         </div>
 
-        <p><strong>Cuisine:</strong> {restaurant.cuisine}</p>
-        <p><strong>Address:</strong> {restaurant.address}</p>
+        <p><strong>📍 Address:</strong> {restaurant.address}</p>
       </div>
 
-      {/* REVIEWS */}
-      <Review reviews={reviews} />
+      {/* ADD REVIEW */}
+      <div className="add-review">
+        <h2>Write a Review</h2>
 
+        <textarea
+          placeholder="Share your experience..."
+          value={newReview}
+          onChange={(e) => setNewReview(e.target.value)}
+        />
+
+        <div className="review-actions">
+          <select value={rating} onChange={(e) => setRating(e.target.value)}>
+            {[5,4,3,2,1].map(r => (
+              <option key={r} value={r}>{r} ⭐</option>
+            ))}
+          </select>
+
+          <button onClick={handleSubmitReview}>Post Review</button>
+        </div>
+      </div>
+
+      {/* REVIEWS LIST */}
+      <div className="reviews-section">
+        <h2>All Reviews</h2>
+
+        {reviews.length === 0 ? (
+          <p className="no-reviews">No reviews yet</p>
+        ) : (
+          reviews.map((review) => (
+            <div key={review._id} className="review-card">
+              <div className="review-header">
+                <span>⭐ {review.rating}</span>
+                <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+              </div>
+              <p>{review.comment}</p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
