@@ -5,7 +5,6 @@ import "./RestaurantDetail.css";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
-
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState("");
@@ -15,8 +14,8 @@ const RestaurantDetail = () => {
     const loadData = async () => {
       try {
         const restaurantRes = await api.get(`/restaurants/${id}`);
-        setRestaurant(restaurantRes.data.data);
-
+        setRestaurant(restaurantRes.data.message);
+          
         const reviewRes = await api.get(`/reviews/restaurant/${id}`);
         setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
       } catch (err) {
