@@ -7,31 +7,40 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-useEffect(() => {
-  const checkUser = async () => {
-    
-    const token = localStorage.getItem("token");
+  useEffect(() => {
+    const checkUser = async () => {
+      const token = localStorage.getItem("token");
 
-    if (!token) {
-      setUser(null);
-      return; //  don't call backend
-    }
+      if (!token) {
+        setUser(null);
+        return;
+      }
 
-    try {
-      const res = await api.get("/users/me");
-      setUser(res.data.data);
-    } catch {
-      setUser(null);
-    }
-  };
+      try {
+        const res = await api.get("/users/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  checkUser();
-}, []);
+        setUser(res.data.data);
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        setUser(null);
+        localStorage.removeItem("token");
+      }
+    };
+
+    checkUser();
+  }, []);
 
   const handleLogout = async () => {
     try {
       await api.post("/logout");
+
+      localStorage.removeItem("token");
       setUser(null);
+
       navigate("/login");
     } catch (err) {
       console.error("Logout failed", err);
@@ -62,17 +71,13 @@ useEffect(() => {
         <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
         <Link className="nav-item-link" to="/add-restaurant">+ Add Restaurant</Link>
 
-        {/* AUTH CONTROLS */}
         {!user ? (
           <>
             <Link className="nav-item-link" to="/login">Login</Link>
             <Link className="nav-item-link" to="/register">Register</Link>
           </>
         ) : (
-          <span
-            className="nav-item-link logout-btn"
-            onClick={handleLogout}
-          >
+          <span className="nav-item-link logout-btn" onClick={handleLogout}>
             Logout
           </span>
         )}
