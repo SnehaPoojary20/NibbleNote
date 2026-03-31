@@ -37,8 +37,3 @@ In an era of information overload, NibbleNote solves the "Review Fatigue" proble
 - 🔗 **Backend API (Render):**  
  https://nibblenote.onrender.com
 
-<<<<<<< HEAD
----
-=======
----
->>>>>>> 71f0641a228ca9a0c04675390714b4cf9089351d
