@@ -2,12 +2,17 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Review } from "../models/review.model.js";
 import { Restaurant } from "../models/restaurant.model.js";
-import {ApiResponse} from "../utils/ApiResponse.js"
+import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
-import redis from "../utils/redisClient.js";
 import axios from "axios";
 
-
+/**
+ * In-memory cache (replaces Redis)
+ * Key: restaurantId
+ * Value: { data, timestamp }
+ */
+const vibeCache = new Map();
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 const recalculateRestaurantStats = async (restaurantId) => {
   const stats = await Review.aggregate([
@@ -30,8 +35,6 @@ const recalculateRestaurantStats = async (restaurantId) => {
     totalReviews: stats[0]?.totalReviews || 0,
   });
 };
-
-
 
 const addReview = asyncHandler(async (req, res) => {
   const { restaurantId, rating, comment } = req.body;
@@ -65,12 +68,13 @@ const addReview = asyncHandler(async (req, res) => {
 
   await recalculateRestaurantStats(restaurantId);
 
+  // Invalidate cache
+  vibeCache.delete(restaurantId);
+
   res.status(201).json(
     new ApiResponse(true, "Review added successfully", review)
   );
 });
-
-
 
 const getReviewsByRestaurant = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
@@ -79,13 +83,10 @@ const getReviewsByRestaurant = asyncHandler(async (req, res) => {
     .populate("userId", "username")
     .sort({ createdAt: -1 });
 
-  
   res.status(200).json(
     new ApiResponse(true, "Fetched reviews successfully", reviews)
   );
 });
-
-
 
 const updateReview = asyncHandler(async (req, res) => {
   const { reviewId } = req.params;
@@ -109,21 +110,19 @@ const updateReview = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Rating must be between 1 and 5");
   }
 
-review.rating = numericRating;
-review.comment = comment;
-await review.save();
+  review.rating = numericRating;
+  review.comment = comment;
+  await review.save();
 
- await recalculateRestaurantStats(review.restaurantId);
- await redis.del(`vibe:${review.restaurantId}`);
+  await recalculateRestaurantStats(review.restaurantId);
 
- res
- .status(200)
- .json(
-  new ApiResponse(true, "Review updated successfully", review)
-);
+  // Invalidate cache
+  vibeCache.delete(review.restaurantId.toString());
+
+  res.status(200).json(
+    new ApiResponse(true, "Review updated successfully", review)
+  );
 });
-
-
 
 const deleteReview = asyncHandler(async (req, res) => {
   const { reviewId } = req.params;
@@ -141,35 +140,28 @@ const deleteReview = asyncHandler(async (req, res) => {
 
   await review.deleteOne();
   await recalculateRestaurantStats(restaurantId);
-  await redis.del(`vibe:${restaurantId}`);
 
+  // Invalidate cache
+  vibeCache.delete(restaurantId.toString());
 
   res.status(200).json(
     new ApiResponse(true, "Review deleted successfully", null)
   );
 });
 
+const getUserReviews = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
 
-
-const getUserReviews = asyncHandler(async(req,res)=>{
-
-    const userId = req.user._id;
-
-    const reviews = await Review.find({ userId })
+  const reviews = await Review.find({ userId })
     .populate("restaurantId", "name")
     .sort({ createdAt: -1 });
 
-   res
-   .status(200)
-   .json(
-  new ApiResponse(true, "Fetched user reviews successfully", reviews)
-);
+  res.status(200).json(
+    new ApiResponse(true, "Fetched user reviews successfully", reviews)
+  );
 });
 
-
-
 const generateVibeCheck = asyncHandler(async (req, res) => {
-
   const { restaurantId } = req.params;
 
   const reviews = await Review.find({ restaurantId })
@@ -178,7 +170,6 @@ const generateVibeCheck = asyncHandler(async (req, res) => {
 
   const texts = reviews.map(r => r.comment);
 
-  
   if (!texts.length) {
     return res.json(
       new ApiResponse(true, "No reviews yet", [
@@ -189,13 +180,12 @@ const generateVibeCheck = asyncHandler(async (req, res) => {
     );
   }
 
-  const cacheKey = `vibe:${restaurantId}`;
+  // Check in-memory cache
+  const cached = vibeCache.get(restaurantId);
 
-  const cached = await redis.get(cacheKey);
-
-  if (cached) {
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return res.json(
-      new ApiResponse(true, "Vibe fetched from cache", JSON.parse(cached))
+      new ApiResponse(true, "Vibe fetched from cache", cached.data)
     );
   }
 
@@ -211,17 +201,25 @@ ${texts.join("\n")}
 
   const summary = llmRes.data.output;
 
-  await redis.set(cacheKey, JSON.stringify(summary), "EX", 86400);
+  // Store in cache
+  vibeCache.set(restaurantId, {
+    data: summary,
+    timestamp: Date.now()
+  });
 
   res.json(
     new ApiResponse(true, "Vibe generated", summary)
   );
 });
 
-
-
-
-export{addReview,getReviewsByRestaurant,updateReview,deleteReview,getUserReviews,generateVibeCheck};
+export {
+  addReview,
+  getReviewsByRestaurant,
+  updateReview,
+  deleteReview,
+  getUserReviews,
+  generateVibeCheck
+};
 
 // add review
 //getReviewsByRestaurant
