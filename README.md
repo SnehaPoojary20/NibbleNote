@@ -27,13 +27,12 @@ In an era of information overload, NibbleNote solves the "Review Fatigue" proble
 
 
 =======
-  
->>>>>>> 71f0641a228ca9a0c04675390714b4cf9089351d
+
 ## 🚀 Live Demo
 
 - 🌐 **Frontend (Vercel):**  
   https://nibble-note.vercel.app
 
 - 🔗 **Backend API (Render):**  
- https://nibblenote.onrender.com
+https://nibblenote.onrender.com
 
