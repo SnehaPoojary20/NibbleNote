@@ -35,7 +35,6 @@ Designed responsive frontend components for seamless review posting, image uploa
 
 ## Frontend
 - React.js
-- Tailwind CSS
 
 ## Backend
 - Node.js
@@ -52,6 +51,7 @@ Designed responsive frontend components for seamless review posting, image uploa
 ## Tools & Deployment
 - Git
 - Vercel
+- Render
 
 ---
 
