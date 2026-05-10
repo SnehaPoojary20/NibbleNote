@@ -177,6 +177,71 @@ const deleteRestaurant = asyncHandler(async(req,res,next)=>{
 
 
 
+const searchRestaurants = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.trim() === "") {
+    throw new ApiError(400, "Search query required");
+  }
+
+  const restaurants = await Restaurant.aggregate([
+    {
+      $match: {
+        isActive: true,
+        $or: [
+          { name: { $regex: q, $options: "i" } },
+          { cuisine: { $regex: q, $options: "i" } },
+          { address: { $regex: q, $options: "i" } }
+        ]
+      }
+    },
+
+    // Better ranking
+    {
+      $addFields: {
+        score: {
+          $cond: [
+            {
+              $regexMatch: {
+                input: "$name",
+                regex: `^${q}`,
+                options: "i"
+              }
+            },
+            10,
+            1
+          ]
+        }
+      }
+    },
+
+    {
+      $sort: {
+        score: -1,
+        avgRating: -1
+      }
+    },
+
+    {
+      $project: {
+        name: 1,
+        cuisine: 1,
+        address: 1,
+        image: 1,
+        avgRating: 1
+      }
+    },
+
+    {
+      $limit: 8
+    }
+  ]);
+
+  res.status(200).json({
+    success: true,
+    results: restaurants
+  });
+});
 
 
 
@@ -185,7 +250,8 @@ export {
   updateRestaurantDetails,
   getAllRestaurants,
   getRestaurantById,
-  deleteRestaurant
+  deleteRestaurant,
+  searchRestaurants
 };
 
 
