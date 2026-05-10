@@ -6,6 +6,8 @@ import api from "../../api/axios";
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const checkUser = async () => {
@@ -47,6 +49,14 @@ const Navbar = () => {
     }
   };
 
+  const handleSearch = (e) => {
+  e.preventDefault();
+
+  if (!query.trim()) return;
+
+  navigate(`/search?q=${query}`);
+};
+
   return (
     <div className="app-navbar">
       <div className="navbar-content">
@@ -59,13 +69,17 @@ const Navbar = () => {
           </Link>
         )}
 
-        <form className="search-form">
+        <form className="search-form" onSubmit={handleSearch}>
           <input
             className="form-control"
             type="search"
             placeholder="Search places, cuisines..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
-          <button className="btn btn-outline-dark">Discover</button>
+          <button type="submit" className="btn btn-outline-dark">
+           Discover
+        </button>
         </form>
 
         <Link className="nav-item-link" to="/restaurants">Restaurants</Link>

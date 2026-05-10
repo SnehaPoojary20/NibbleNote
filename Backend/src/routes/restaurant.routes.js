@@ -6,6 +6,7 @@ import {
   getAllRestaurants,
   getRestaurantById,
   deleteRestaurant,
+  searchRestaurants
 } from "../controllers/restaurant.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { generateVibeCheck } from "../controllers/review.controller.js";
@@ -21,6 +22,7 @@ router.post("/",
 );
 
 router.get("/", getAllRestaurants);
+router.get("/search", searchRestaurants);
 router.get("/:restaurantId", getRestaurantById);
 
 // Protected route with image upload

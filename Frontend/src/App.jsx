@@ -8,6 +8,7 @@ import Profile from "./Components/Profile/Profile.jsx";
 import Footer from "./Components/Footer/Footer.jsx";
 import Login from "./Components/Login/Login.jsx";
 import Register from "./Components/Register/Register.jsx"
+import SearchResults from "./Components/SearchResults/SearchResults.jsx";
 
 function App() {
   return (
@@ -21,8 +22,9 @@ function App() {
         <Route path="/add-restaurant" element={<AddRestaurant />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/restaurants" element={<Restaurant />} />
+        <Route path="/search" element={<SearchResults />} />
         <Route path="/restaurants/:id" element={<RestaurantDetail />} />
-      </Routes>
+        </Routes>
 
       <Footer />
     </>
