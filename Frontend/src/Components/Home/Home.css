@@ -46,3 +46,146 @@
   line-height: 1.6;
   opacity: 0.85;
 }
+
+/* TRENDING */
+.trending {
+  background: #0f0f0f;
+  color: white;
+  padding: 6rem 2rem;
+}
+
+.trending h2 {
+  text-align: center;
+  font-size: 2.8rem;
+  margin-bottom: 3rem;
+}
+
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.food-card {
+  background: #1a1a1a;
+  border-radius: 22px;
+  overflow: hidden;
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.food-card:hover {
+  transform: translateY(-8px);
+}
+
+.food-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.food-info {
+  padding: 1.2rem;
+}
+
+.food-info h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.food-info p {
+  opacity: 0.7;
+}
+
+/* CATEGORIES */
+.categories {
+  background: black;
+  color: white;
+  padding: 5rem 2rem;
+  text-align: center;
+}
+
+.categories h2 {
+  font-size: 2.8rem;
+  margin-bottom: 2rem;
+}
+
+.category-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.category-card {
+  background: #1f1f1f;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.category-card:hover {
+  background: #ff6b35;
+  transform: scale(1.05);
+}
+
+/* FEATURES */
+.features {
+  background: #111;
+  padding: 6rem 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background: #1a1a1a;
+  color: white;
+  padding: 2.5rem;
+  border-radius: 22px;
+  text-align: center;
+  transition: 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card p {
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+/* CTA */
+.cta {
+  background: black;
+  color: white;
+  padding: 7rem 2rem;
+  text-align: center;
+}
+
+.cta h2 {
+  font-size: 3rem;
+  margin-bottom: 2rem;
+}
+
+.cta button {
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #ff6b35;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.cta button:hover {
+  transform: scale(1.05);
+}
