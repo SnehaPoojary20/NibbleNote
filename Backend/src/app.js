@@ -19,6 +19,9 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 // routes
+app.get("/", (req, res) => {
+  res.send("NibbleNote API Running 🚀");
+});
 import userRoutes from './routes/user.routes.js'
 import restaurantRoutes from './routes/restaurant.routes.js'
 import reviewRoutes from './routes/review.routes.js'
