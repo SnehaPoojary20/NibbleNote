@@ -18,22 +18,31 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-     await api.post("/users/login", formData);
-      
-      navigate("/profile");
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const res = await api.post("/users/login", formData);
+
+    // store JWT token
+    localStorage.setItem(
+      "token",
+      res.data.data.accessToken
+    );
+
+    navigate("/profile");
+
+  } catch (err) {
+    setError(
+      err.response?.data?.message || "Login failed"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="auth-container">
