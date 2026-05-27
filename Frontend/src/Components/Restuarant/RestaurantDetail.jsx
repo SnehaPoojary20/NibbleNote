@@ -16,7 +16,7 @@ const RestaurantDetail = () => {
         const restaurantRes = await api.get(`/restaurants/${id}`);
         setRestaurant(restaurantRes.data.message);
           
-        const reviewRes = await api.get(`/reviews/restaurant/${restaurantId}`);
+        const reviewRes = await api.get(`/reviews/restaurant/${id}`);
         setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
       } catch (err) {
         console.error("Load failed", err);
@@ -30,10 +30,11 @@ const RestaurantDetail = () => {
     if (!newReview.trim()) return;
 
     try {
-      const res = await api.post(`/reviews/${id}`, {
-        comment: newReview,
-        rating,
-      });
+      const res = await api.post("/reviews", {
+      restaurantId: id,
+      comment: newReview,
+      rating,
+    });
 
       setReviews([res.data.data, ...reviews]);
       setNewReview("");
