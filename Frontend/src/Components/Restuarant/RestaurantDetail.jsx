@@ -16,7 +16,7 @@ const RestaurantDetail = () => {
         const restaurantRes = await api.get(`/restaurants/${id}`);
         setRestaurant(restaurantRes.data.message);
           
-        const reviewRes = await api.get(`/reviews/restaurant/${id}`);
+        const reviewRes = await api.get(`/reviews/restaurant/${restaurantId}`);
         setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
       } catch (err) {
         console.error("Load failed", err);
