@@ -11,57 +11,60 @@ const Login = () => {
     password: ""
   });
 
-  localStorage.setItem(
-  "token",
-  res.data.data.accessToken
-);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await api.post("/users/login", formData);
+      const res = await api.post(
+        "/users/login",
+        formData
+      );
 
-    // store JWT token
-    localStorage.setItem(
-      "token",
-      res.data.data.accessToken
-    );
+      localStorage.setItem(
+        "token",
+        res.data.data.accessToken
+      );
 
-    navigate("/profile");
+      navigate("/profile");
 
-  } catch (err) {
-    setError(
-      err.response?.data?.message || "Login failed"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        "Login failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-container">
-      <form className="auth-card" onSubmit={handleSubmit}>
+      <form
+        className="auth-card"
+        onSubmit={handleSubmit}
+      >
         <h2>Login</h2>
 
-       <input
-  name="email"
-  type="text"
-  placeholder="Email or Username"
-  onChange={handleChange}
-  required
-/>
-
+        <input
+          name="email"
+          type="text"
+          placeholder="Email or Username"
+          onChange={handleChange}
+          required
+        />
 
         <input
           name="password"
@@ -71,10 +74,14 @@ const handleSubmit = async (e) => {
           required
         />
 
-        {error && <p className="error-text">{error}</p>}
+        {error && (
+          <p className="error-text">{error}</p>
+        )}
 
         <button disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading
+            ? "Logging in..."
+            : "Login"}
         </button>
       </form>
     </div>
