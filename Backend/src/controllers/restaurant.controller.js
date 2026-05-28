@@ -4,11 +4,16 @@ import { Restaurant } from "../models/restaurant.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {Review} from "../models/review.model.js";
-import { generateVibeCheck } from "../controllers/review.controller.js";
+// import { generateVibeCheck } from "../controllers/review.controller.js";
 
 
 const addRestaurantDetails = asyncHandler(async (req, res) => {
-  const { name, address, coordinates, cuisine } = req.body;
+  const { name, address, cuisine } = req.body;
+
+const coordinates = {
+  lat: req.body["coordinates[lat]"],
+  lng: req.body["coordinates[lng]"],
+};
 
   if (!name || !address || !coordinates || !cuisine) {
     throw new ApiError(400, "All fields are required");
@@ -56,7 +61,12 @@ const addRestaurantDetails = asyncHandler(async (req, res) => {
 
  const updateRestaurantDetails = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
-  const { name, address, coordinates, cuisine } = req.body;
+  const { name, address, cuisine } = req.body;
+
+const coordinates = {
+  lat: req.body["coordinates[lat]"],
+  lng: req.body["coordinates[lng]"],
+};
 
   const restaurant = await Restaurant.findById(restaurantId);
   if (!restaurant) throw new ApiError(404, "Restaurant not found");

@@ -23,6 +23,7 @@ router.post("/",
 
 router.get("/", getAllRestaurants);
 router.get("/search", searchRestaurants);
+router.get("/:restaurantId/vibe", generateVibeCheck);
 router.get("/:restaurantId", getRestaurantById);
 
 // Protected route with image upload
@@ -31,7 +32,6 @@ router.put("/:restaurantId",
   upload.fields([{ name: "image", maxCount: 1 }]), 
   updateRestaurantDetails
 );
-router.get("/:restaurantId/vibe", generateVibeCheck);
 
 router.delete("/:restaurantId", verifyJWT, deleteRestaurant);
 

@@ -14,7 +14,7 @@ const RestaurantDetail = () => {
     const loadData = async () => {
       try {
         const restaurantRes = await api.get(`/restaurants/${id}`);
-        setRestaurant(restaurantRes.data.message);
+        setRestaurant(restaurantRes.data.data);
           
         const reviewRes = await api.get(`/reviews/restaurant/${id}`);
         setReviews(Array.isArray(reviewRes.data.data) ? reviewRes.data.data : []);
@@ -37,6 +37,7 @@ const RestaurantDetail = () => {
     });
 
       setReviews([res.data.data, ...reviews]);
+      await loadData();
       setNewReview("");
       setRating(5);
     } catch (err) {
@@ -52,11 +53,7 @@ const RestaurantDetail = () => {
       {/* HERO IMAGE */}
       <div className="hero">
           <img
-    src={
-      restaurant.image?.startsWith("http")
-        ? restaurant.image
-        : `http://localhost:2000${restaurant.image}`
-    }
+   src={restaurant.image}
     alt={restaurant.name}
   />
         <div className="overlay" />
