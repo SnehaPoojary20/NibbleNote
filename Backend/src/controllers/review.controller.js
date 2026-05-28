@@ -40,19 +40,20 @@ const addReview = asyncHandler(async (req, res) => {
   const { restaurantId, rating, comment } = req.body;
   const userId = req.user._id;
 
-  if (!restaurantId || !rating || !comment) {
-    throw new ApiError(400, "All fields are required");
-  }
+ if (!restaurantId || rating == null || !comment) {
+  throw new ApiError(400, "All fields are required");
+}
 
   const restaurant = await Restaurant.findById(restaurantId);
   if (!restaurant || !restaurant.isActive) {
     throw new ApiError(404, "Restaurant not found");
   }
 
-  const numericRating = Number(rating);
-  if (numericRating < 1 || numericRating > 5) {
-    throw new ApiError(400, "Rating must be between 1 and 5");
-  }
+ const numericRating = Number(rating);
+
+if (isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+  throw new ApiError(400, "Rating must be between 1 and 5");
+}
 
   const existingReview = await Review.findOne({ userId, restaurantId });
   if (existingReview) {
@@ -106,9 +107,9 @@ const updateReview = asyncHandler(async (req, res) => {
   }
 
   const numericRating = Number(rating);
-  if (numericRating < 1 || numericRating > 5) {
-    throw new ApiError(400, "Rating must be between 1 and 5");
-  }
+  if (isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+  throw new ApiError(400, "Rating must be between 1 and 5");
+}
 
   review.rating = numericRating;
   review.comment = comment;
@@ -195,12 +196,19 @@ ${texts.join("\n")}
 `;
 
   const llmRes = await axios.post(process.env.LLM_API_URL, {
-    prompt,
-    max_tokens: 120
-  });
+  prompt,
+  max_tokens: 120
+});
 
-  const summary = llmRes.data.output;
+console.log("LLM RESPONSE:", llmRes.data);
 
+const summary =
+  llmRes.data.output ||
+  llmRes.data.result ||
+  llmRes.data.response ||
+  llmRes.data?.choices?.[0]?.message?.content ||
+  "No vibe summary available";
+  
   // Store in cache
   vibeCache.set(restaurantId, {
     data: summary,
