@@ -165,6 +165,10 @@ const getUserReviews = asyncHandler(async (req, res) => {
 const generateVibeCheck = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+  throw new ApiError(400, "Invalid restaurant ID");
+}
+
   const reviews = await Review.find({ restaurantId })
     .limit(150)
     .select("comment");
@@ -208,7 +212,7 @@ const summary =
   llmRes.data.response ||
   llmRes.data?.choices?.[0]?.message?.content ||
   "No vibe summary available";
-  
+
   // Store in cache
   vibeCache.set(restaurantId, {
     data: summary,
