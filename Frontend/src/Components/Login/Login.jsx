@@ -11,6 +11,11 @@ const Login = () => {
     password: ""
   });
 
+  localStorage.setItem(
+  "token",
+  res.data.data.accessToken
+);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
