@@ -107,7 +107,6 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
 const getAllRestaurants = asyncHandler(async (req, res) => {
   try {
     const { name, cuisine, search, page = 1, limit = 10 } = req.query;
-
     const filter = { isActive: true };
 
     if (name) filter.name = { $regex: name, $options: "i" };
@@ -126,13 +125,26 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
       }
     }
 
+    
+    const total = await Restaurant.countDocuments(filter);
+
     const restaurants = await Restaurant.find(filter)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
       .sort({ createdAt: -1 });
 
-    return
-    res.status(200).json(new ApiResponse(200, restaurant, "Restaurant fetched successfully"));
+    return res.status(200).json({
+      success: true,
+      data: restaurants,
+      
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+      message: "Restaurants fetched successfully",
+    });
   } catch (err) {
     console.error("Error in getAllRestaurants:", err);
     throw new ApiError(500, "Failed to fetch restaurants");
@@ -186,63 +198,36 @@ const searchRestaurants = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Search query required");
   }
 
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
   const restaurants = await Restaurant.aggregate([
     {
       $match: {
         isActive: true,
         $or: [
-          { name: { $regex: q, $options: "i" } },
-          { cuisine: { $regex: q, $options: "i" } },
-          { address: { $regex: q, $options: "i" } }
-        ]
-      }
+          { name: { $regex: escaped, $options: "i" } },
+          { cuisine: { $regex: escaped, $options: "i" } },
+          { address: { $regex: escaped, $options: "i" } },
+        ],
+      },
     },
-
-    // Better ranking
     {
       $addFields: {
         score: {
           $cond: [
-            {
-              $regexMatch: {
-                input: "$name",
-                regex: `^${q}`,
-                options: "i"
-              }
-            },
+            { $regexMatch: { input: "$name", regex: `^${escaped}`, options: "i" } },
             10,
-            1
-          ]
-        }
-      }
+            1,
+          ],
+        },
+      },
     },
-
-    {
-      $sort: {
-        score: -1,
-        avgRating: -1
-      }
-    },
-
-    {
-      $project: {
-        name: 1,
-        cuisine: 1,
-        address: 1,
-        image: 1,
-        avgRating: 1
-      }
-    },
-
-    {
-      $limit: 8
-    }
+    { $sort: { score: -1, avgRating: -1 } },
+    { $project: { name: 1, cuisine: 1, address: 1, image: 1, avgRating: 1 } },
+    { $limit: 8 },
   ]);
 
-  res.status(200).json({
-    success: true,
-    results: restaurants
-  });
+  res.status(200).json({ success: true, results: restaurants });
 });
 
 

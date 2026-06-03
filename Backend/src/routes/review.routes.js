@@ -4,10 +4,13 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/", verifyJWT, addReview);
+// Static routes first
+router.get("/user", verifyJWT, getUserReviews);
 router.get("/restaurant/:restaurantId", getReviewsByRestaurant);
+
+// Param routes after
+router.post("/", verifyJWT, addReview);
 router.put("/:reviewId", verifyJWT, updateReview);
 router.delete("/:reviewId", verifyJWT, deleteReview);
-router.get("/user", verifyJWT, getUserReviews);
 
 export default router;
