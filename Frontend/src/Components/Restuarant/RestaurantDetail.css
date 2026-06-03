@@ -130,3 +130,48 @@
   padding: 150px;
   font-size: 22px;
 }
+
+.review-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-date {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.review-rating {
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-num {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.review-comment {
+  margin-top: 8px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.delete-review-btn {
+  margin-top: 8px;
+  background: none;
+  border: 1px solid #ffaaaa;
+  color: #cc0000;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.delete-review-btn:hover {
+  background: #fff0f0;
+}

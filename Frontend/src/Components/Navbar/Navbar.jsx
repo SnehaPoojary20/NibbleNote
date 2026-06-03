@@ -38,7 +38,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await api.post("/logout");
+      await api.post("/users/logout");
 
       localStorage.removeItem("token");
       setUser(null);

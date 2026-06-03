@@ -19,7 +19,7 @@ const SearchResults = () => {
         setLoading(true);
 
         const res = await api.get(
-          `/restaurants/search?q=${query}`
+          `/restaurants/search?q=${encodeURIComponent(query)}`
         );
 
         setRestaurants(res.data.results || []);

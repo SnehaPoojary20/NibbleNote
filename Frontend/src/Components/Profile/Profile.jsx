@@ -40,9 +40,7 @@ const Profile = () => {
           : restRes.data.data.restaurants || [];
 
         //  Only user's restaurants
-        const mine = list.filter(
-          (r) => r.createdBy === res.data.data._id
-        );
+        const mine = list.filter((r) => r.createdBy?.toString() === res.data.data._id?.toString());
 
         setRestaurants(mine);
       } catch (err) {
@@ -58,7 +56,9 @@ const Profile = () => {
     const data = new FormData();
     data.append("profilePic", e.target.files[0]);
 
-    await api.post("/update-profile-pic", data);
+    await api.put("/users/update-profile-pic", data, {
+  headers: { "Content-Type": "multipart/form-data" },
+});
     window.location.reload();
   };
 
