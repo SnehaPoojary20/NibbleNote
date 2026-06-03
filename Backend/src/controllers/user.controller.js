@@ -85,9 +85,9 @@ for (let key in req.body) {
     throw new ApiError(500,"Something went wrong while regestering the user");
   }
 
-  return res.status(201).json(
-    new ApiResponse(200, createdUser,"User Registered Sucessfully")
-  );
+ return res
+ .status(201)
+ .json(new ApiResponse(201, createdUser, "User Registered Successfully"));
 });
 
 
@@ -128,21 +128,14 @@ const loginUser =asyncHandler(async(req,res)=>{
   sameSite: "none"
 };
 
-  return res
-  .status(200)
-  .cookie("accessToken",accessToken,options)
-  .cookie("refreshToken",refreshToken,options)
-.json(
-  new ApiResponse(
-    200,
-    {
-      user: loggegInUser,
-      accessToken,
-      refreshToken
-    },
-    "User Logged In Successfully"
-  )
-);
+return res
+.status(200)
+.json(new ApiResponse(200, {
+   user: loggedInUser, 
+   accessToken, refreshToken
+   }, 
+   "User Logged In Successfully"
+  ));;
 });
 
 
@@ -166,11 +159,9 @@ const options = {
   sameSite: "none"
 };
 
-  return res
-  .status(200)
-  .clearCookie("accessToken",options)
-  .clearCookie("refreshToken",options)
-  .json(new ApiResponse(200,{},"User Logged Out"))
+ return res
+ .status(200)
+ .json(new ApiResponse(200, {}, "User Logged Out"));
 })
 
 const refreshAccessToken =asyncHandler(async(req,res)=>{
@@ -208,16 +199,8 @@ const refreshAccessToken =asyncHandler(async(req,res)=>{
   await generateAccessAndRefreshTokens(user._id);
 
 return res
-  .status(200)
-  .cookie("accessToken", accessToken, options)
-  .cookie("refreshToken", refreshToken, options)
-  .json(
-    new ApiResponse(
-      200,
-      { accessToken, refreshToken },
-      "Access token refreshed successfully"
-    )
-  );
+.status(200)
+.json(new ApiResponse(200, { accessToken, refreshToken }, "Access token refreshed successfully"));
 
   } catch (error) {
    throw new ApiError(401,error?.message || "Invalid refresh token");
@@ -244,7 +227,7 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
 
  return res
  .status(200)
- .json(new ApiResponse(200,{},"Password changed sucessfully"))
+ .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
 
@@ -253,10 +236,7 @@ const getCurrentUser= asyncHandler(async(req,res)=>{
 
 return res
 .status(200)
-.json(
-  new ApiResponse(200, req.user, "Current user fetched successfully")
-);
-
+.json(new ApiResponse(200, req.user, "Current user fetched successfully"));
 
 });
 
@@ -284,7 +264,7 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
 
   return res
   .status(200)
-  .json(new ApiResponse(200, user, "Account details updated successfully"))
+  .json(new ApiResponse(200, user, "Account details updated successfully"));
 });
 
 
@@ -317,9 +297,7 @@ const user = await User.findByIdAndUpdate
 
   return res
   .status(200)
-  .json(
-  new ApiResponse(200, user, "Profile picture updated successfully")
-);
+  .json(new ApiResponse(200, user, "Profile picture updated successfully"));
 
 })
 

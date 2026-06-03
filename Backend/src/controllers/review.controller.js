@@ -72,9 +72,9 @@ if (isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
   // Invalidate cache
   vibeCache.delete(restaurantId);
 
-  res.status(201).json(
-    new ApiResponse(true, "Review added successfully", review)
-  );
+ res
+ .status(201)
+ .json(new ApiResponse(201, review, "Review added successfully"));
 });
 
 const getReviewsByRestaurant = asyncHandler(async (req, res) => {
@@ -84,9 +84,9 @@ const getReviewsByRestaurant = asyncHandler(async (req, res) => {
     .populate("userId", "username")
     .sort({ createdAt: -1 });
 
-  res.status(200).json(
-    new ApiResponse(true, "Fetched reviews successfully", reviews)
-  );
+  res
+  .status(200)
+  .json(new ApiResponse(200, reviews, "Fetched reviews successfully"));
 });
 
 const updateReview = asyncHandler(async (req, res) => {
@@ -120,9 +120,9 @@ const updateReview = asyncHandler(async (req, res) => {
   // Invalidate cache
   vibeCache.delete(review.restaurantId.toString());
 
-  res.status(200).json(
-    new ApiResponse(true, "Review updated successfully", review)
-  );
+  res
+  .status(200)
+  .json(new ApiResponse(200, review, "Review updated successfully"));
 });
 
 const deleteReview = asyncHandler(async (req, res) => {
@@ -145,9 +145,9 @@ const deleteReview = asyncHandler(async (req, res) => {
   // Invalidate cache
   vibeCache.delete(restaurantId.toString());
 
-  res.status(200).json(
-    new ApiResponse(true, "Review deleted successfully", null)
-  );
+  res
+  .status(200)
+  .json(new ApiResponse(200, null, "Review deleted successfully"));
 });
 
 const getUserReviews = asyncHandler(async (req, res) => {
@@ -157,9 +157,9 @@ const getUserReviews = asyncHandler(async (req, res) => {
     .populate("restaurantId", "name")
     .sort({ createdAt: -1 });
 
-  res.status(200).json(
-    new ApiResponse(true, "Fetched user reviews successfully", reviews)
-  );
+  res
+  .status(200)
+  .json(new ApiResponse(200, reviews, "Fetched user reviews successfully"));
 });
 
 const generateVibeCheck = asyncHandler(async (req, res) => {

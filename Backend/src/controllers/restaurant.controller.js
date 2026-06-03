@@ -53,8 +53,8 @@ const coordinates = {
   });
 
   res
-    .status(201)
-    .json(new ApiResponse(true, "Restaurant added successfully", restaurant));
+  .status(201)
+  .json(new ApiResponse(201, restaurant, "Restaurant added successfully"));
 });
 
 
@@ -99,9 +99,9 @@ const coordinates = {
     { new: true }
   );
 
-  res
-    .status(200)
-    .json(new ApiResponse(true, "Restaurant updated successfully", updatedRestaurant));
+ res
+ .status(200)
+ .json(new ApiResponse(200, updatedRestaurant, "Restaurant updated successfully"));
 });
 
 
@@ -133,11 +133,8 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
       .limit(Number(limit))
       .sort({ createdAt: -1 });
 
-    return res.status(200).json({
-      success: true,
-      data: restaurants,
-      message: "Restaurants fetched successfully",
-    });
+    return
+    res.status(200).json(new ApiResponse(200, restaurant, "Restaurant fetched successfully"));
   } catch (err) {
     console.error("Error in getAllRestaurants:", err);
     throw new ApiError(500, "Failed to fetch restaurants");
@@ -180,9 +177,8 @@ const deleteRestaurant = asyncHandler(async(req,res,next)=>{
 
    await restaurant.save();
 
-   res
-   .status(200)
-   .json(new ApiResponse(true, "Restaurant deleted successfully"));  
+   res.status(200).json(new ApiResponse(200, null, "Restaurant deleted successfully"));
+
 });
 
 
