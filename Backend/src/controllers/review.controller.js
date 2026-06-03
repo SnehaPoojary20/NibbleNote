@@ -162,66 +162,55 @@ const getUserReviews = asyncHandler(async (req, res) => {
   .json(new ApiResponse(200, reviews, "Fetched user reviews successfully"));
 });
 
+
+
 const generateVibeCheck = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
-  throw new ApiError(400, "Invalid restaurant ID");
-}
+    throw new ApiError(400, "Invalid restaurant ID");
+  }
 
-  const reviews = await Review.find({ restaurantId })
-    .limit(150)
-    .select("comment");
-
+  const reviews = await Review.find({ restaurantId }).limit(150).select("comment");
   const texts = reviews.map(r => r.comment);
 
   if (!texts.length) {
     return res.json(
-      new ApiResponse(true, "No reviews yet", [
+      new ApiResponse(200, [
         "New place — be the first to review!",
         "Fresh spot with growing buzz",
         "No vibes yet, help shape it!"
-      ])
+      ], "No reviews yet")
     );
   }
 
-  // Check in-memory cache
   const cached = vibeCache.get(restaurantId);
-
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return res.json(
-      new ApiResponse(true, "Vibe fetched from cache", cached.data)
-    );
+    return res.json(new ApiResponse(200, cached.data, "Vibe fetched from cache"));
   }
 
-  const prompt = `
-Summarize these reviews into 3 short vibe points:
-${texts.join("\n")}
-`;
+  const prompt = `Summarize these reviews into 3 short vibe points:\n${texts.join("\n")}`;
 
   const llmRes = await axios.post(process.env.LLM_API_URL, {
-  prompt,
-  max_tokens: 120
-});
-
-console.log("LLM RESPONSE:", llmRes.data);
-
-const summary =
-  llmRes.data.output ||
-  llmRes.data.result ||
-  llmRes.data.response ||
-  llmRes.data?.choices?.[0]?.message?.content ||
-  "No vibe summary available";
-
-  // Store in cache
-  vibeCache.set(restaurantId, {
-    data: summary,
-    timestamp: Date.now()
+    prompt,
+    max_tokens: 120,
   });
 
-  res.json(
-    new ApiResponse(true, "Vibe generated", summary)
-  );
+ 
+  const summary =
+    llmRes.data?.choices?.[0]?.message?.content ||
+    llmRes.data?.output ||
+    llmRes.data?.result ||
+    llmRes.data?.response;
+
+  if (!summary) {
+    console.error("Unexpected LLM response shape:", JSON.stringify(llmRes.data));
+    throw new ApiError(502, "LLM returned an unexpected response format");
+  }
+
+  vibeCache.set(restaurantId, { data: summary, timestamp: Date.now() });
+
+  res.json(new ApiResponse(200, summary, "Vibe generated"));
 });
 
 export {

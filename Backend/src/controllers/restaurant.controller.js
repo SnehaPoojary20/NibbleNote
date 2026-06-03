@@ -59,14 +59,14 @@ const coordinates = {
 
 
 
- const updateRestaurantDetails = asyncHandler(async (req, res) => {
+const updateRestaurantDetails = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
   const { name, address, cuisine } = req.body;
 
-const coordinates = {
-  lat: req.body["coordinates[lat]"],
-  lng: req.body["coordinates[lng]"],
-};
+  const coordinates = {
+    lat: req.body["coordinates[lat]"],
+    lng: req.body["coordinates[lng]"],
+  };
 
   const restaurant = await Restaurant.findById(restaurantId);
   if (!restaurant) throw new ApiError(404, "Restaurant not found");
@@ -75,33 +75,31 @@ const coordinates = {
     throw new ApiError(403, "You are not authorized");
   }
 
-  let imageUrl = restaurant.image;
+  
+  const updateFields = {};
+  if (name) updateFields.name = name;
+  if (address) updateFields.address = address;
+  if (cuisine) updateFields.cuisine = cuisine;
+  if (coordinates.lat && coordinates.lng) updateFields.coordinates = coordinates;
 
   if (req.files?.image?.length) {
     const uploadedImage = await uploadOnCloudinary(
       req.files.image[0].path,
       "restaurant_images"
     );
-    imageUrl = uploadedImage.secure_url;
+    if (!uploadedImage?.secure_url) {
+      throw new ApiError(500, "Failed to upload restaurant image");
+    }
+    updateFields.image = uploadedImage.secure_url;
   }
 
   const updatedRestaurant = await Restaurant.findByIdAndUpdate(
     restaurantId,
-    {
-      $set: {
-        name,
-        address,
-        coordinates,
-        cuisine,
-        image: imageUrl,
-      },
-    },
+    { $set: updateFields },
     { new: true }
   );
 
- res
- .status(200)
- .json(new ApiResponse(200, updatedRestaurant, "Restaurant updated successfully"));
+  res.status(200).json(new ApiResponse(200, updatedRestaurant, "Restaurant updated successfully"));
 });
 
 
@@ -160,25 +158,23 @@ const getRestaurantById = asyncHandler(async(req,res,next)=>{
 
 
 
-const deleteRestaurant = asyncHandler(async(req,res,next)=>{   
-   const { restaurantId } = req.params;
+const deleteRestaurant = asyncHandler(async (req, res, next) => {
+  const { restaurantId } = req.params;
 
-   const restaurant = await Restaurant .findById(restaurantId);
+  const restaurant = await Restaurant.findById(restaurantId);
 
-   if(!restaurant){
-      throw new ApiError(404, "Restaurant not found");
-   }  
+  if (!restaurant || !restaurant.isActive) { 
+    throw new ApiError(404, "Restaurant not found");
+  }
 
-   if(restaurant.createdBy.toString() !== req.user._id.toString()){
-      throw new ApiError(403, "You are not authorized to delete this restaurant")
-   };
+  if (restaurant.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this restaurant");
+  }
 
-   restaurant.isActive = false;  
+  restaurant.isActive = false;
+  await restaurant.save();
 
-   await restaurant.save();
-
-   res.status(200).json(new ApiResponse(200, null, "Restaurant deleted successfully"));
-
+  res.status(200).json(new ApiResponse(200, null, "Restaurant deleted successfully"));
 });
 
 
