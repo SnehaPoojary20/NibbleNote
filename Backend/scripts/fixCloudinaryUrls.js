@@ -1,13 +1,24 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import User from "../src/models/user.model.js";
+import { User } from "../src/models/user.model.js";
 import { Restaurant } from "../src/models/restaurant.model.js";
 import { DB_NAME } from "../src/constants.js";
 import connectDB from "../src/db/index.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({
+  path: path.resolve(__dirname, "../.env"),
+});
 
 const run = async () => {
+
+console.log("MONGODB_URI =", process.env.MONGODB_URI);
+console.log("DB_NAME =", DB_NAME);
+
   await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`);
   console.log("Connected to DB");
 
