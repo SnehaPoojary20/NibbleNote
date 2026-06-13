@@ -92,50 +92,48 @@ for (let key in req.body) {
 
 
 
-const loginUser =asyncHandler(async(req,res)=>{
-
-  // const{ username, email, password}=req.body
+const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body || {};
 
-  if(!(username || email) || !password){
-    throw new ApiError(400,"username or password is required")
+  if (!(username || email) || !password) {
+    throw new ApiError(400, "username or password is required");
   }
 
-  const user= await User.findOne({
+  const user = await User.findOne({
     $or: [
-    { username: username?.toLowerCase() },
-    { email: email?.toLowerCase() }
-  ]
-  })
+      { username: username?.toLowerCase() },
+      { email: email?.toLowerCase() }
+    ]
+  });
 
-  if(!user){
-  throw new ApiError(404,"User does not exist")
-}
-
-  const isPasswordValid = await user.isPasswordCorrect(password)
-
-  if(! isPasswordValid){
-    throw new ApiError(401,"Invalid User Credentials");
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
   }
 
-  const{accessToken,refreshToken} = await generateAccessAndRefreshTokens(user._id)
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid User Credentials");
+  }
 
-  const loggegInUser = await User.findById(user._id).select("-password -refreshToken")
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
 
- const options = {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none"
-};
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
-return res
-.status(200)
-.json(new ApiResponse(200, {
-   user: loggedInUser, 
-   accessToken, refreshToken
-   }, 
-   "User Logged In Successfully"
-  ));;
+  const options = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none"
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(200, {
+      user: loggedInUser,
+      accessToken,
+      refreshToken
+    }, "User Logged In Successfully"));
 });
 
 
