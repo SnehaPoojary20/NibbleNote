@@ -6,7 +6,7 @@ import api from "../../api/axios";
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  
+
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -19,12 +19,8 @@ const Navbar = () => {
       }
 
       try {
-        const res = await api.get("/users/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+       
+        const res = await api.get("/users/me");
         setUser(res.data.data);
       } catch (err) {
         console.error("Auth check failed:", err);
@@ -38,7 +34,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await api.post("/users/logout");
+      await api.post("/users/logout"); 
 
       localStorage.removeItem("token");
       setUser(null);
@@ -50,12 +46,12 @@ const Navbar = () => {
   };
 
   const handleSearch = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!query.trim()) return;
+    if (!query.trim()) return;
 
-  navigate(`/search?q=${query}`);
-};
+    navigate(`/search?q=${encodeURIComponent(query)}`); 
+  };
 
   return (
     <div className="app-navbar">
@@ -78,8 +74,8 @@ const Navbar = () => {
             onChange={(e) => setQuery(e.target.value)}
           />
           <button type="submit" className="btn btn-outline-dark">
-           Discover
-        </button>
+            Discover
+          </button>
         </form>
 
         <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
