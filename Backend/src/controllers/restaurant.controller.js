@@ -2,22 +2,22 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Restaurant } from "../models/restaurant.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {Review} from "../models/review.model.js";
-// import { generateVibeCheck } from "../controllers/review.controller.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { Review } from "../models/review.model.js";
 
 
 const addRestaurantDetails = asyncHandler(async (req, res) => {
   const { name, address, cuisine } = req.body;
 
-const coordinates = {
-  lat: req.body["coordinates[lat]"],
-  lng: req.body["coordinates[lng]"],
-};
+  const coordinates = {
+    lat: req.body["coordinates[lat]"],
+    lng: req.body["coordinates[lng]"],
+  };
 
- if (!name || !address || !cuisine || !coordinates.lat || !coordinates.lng) {
-  throw new ApiError(400, "All fields are required, including coordinates");
-}
+  
+  if (!name || !address || !cuisine || !coordinates.lat || !coordinates.lng) {
+    throw new ApiError(400, "All fields are required, including coordinates");
+  }
 
   const existingRestaurant = await Restaurant.findOne({
     name,
@@ -33,9 +33,9 @@ const coordinates = {
     throw new ApiError(400, "Restaurant image is required");
   }
 
-  const imageLocalPath = req.files.image[0].path;
+ 
   const uploadedImage = await uploadOnCloudinary(
-    imageLocalPath,
+    req.files.image[0].buffer,
     "restaurant_images"
   );
 
@@ -53,8 +53,8 @@ const coordinates = {
   });
 
   res
-  .status(201)
-  .json(new ApiResponse(201, restaurant, "Restaurant added successfully"));
+    .status(201)
+    .json(new ApiResponse(201, restaurant, "Restaurant added successfully"));
 });
 
 
@@ -75,7 +75,6 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not authorized");
   }
 
-  
   const updateFields = {};
   if (name) updateFields.name = name;
   if (address) updateFields.address = address;
@@ -83,13 +82,16 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
   if (coordinates.lat && coordinates.lng) updateFields.coordinates = coordinates;
 
   if (req.files?.image?.length) {
+ 
     const uploadedImage = await uploadOnCloudinary(
-      req.files.image[0].path,
+      req.files.image[0].buffer,
       "restaurant_images"
     );
+
     if (!uploadedImage?.secure_url) {
       throw new ApiError(500, "Failed to upload restaurant image");
     }
+
     updateFields.image = uploadedImage.secure_url;
   }
 
@@ -99,7 +101,9 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  res.status(200).json(new ApiResponse(200, updatedRestaurant, "Restaurant updated successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, updatedRestaurant, "Restaurant updated successfully"));
 });
 
 
@@ -125,7 +129,6 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
       }
     }
 
-    
     const total = await Restaurant.countDocuments(filter);
 
     const restaurants = await Restaurant.find(filter)
@@ -136,7 +139,6 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: true,
       data: restaurants,
-      
       pagination: {
         total,
         page: Number(page),
@@ -174,7 +176,7 @@ const deleteRestaurant = asyncHandler(async (req, res, next) => {
 
   const restaurant = await Restaurant.findById(restaurantId);
 
-  if (!restaurant || !restaurant.isActive) { 
+  if (!restaurant || !restaurant.isActive) {
     throw new ApiError(404, "Restaurant not found");
   }
 
@@ -239,12 +241,3 @@ export {
   deleteRestaurant,
   searchRestaurants
 };
-
-
-
-
-// add restaurant:address,location,cuisine,images
-// create rating options
-//comment section
-// crud operations for comments section
-
