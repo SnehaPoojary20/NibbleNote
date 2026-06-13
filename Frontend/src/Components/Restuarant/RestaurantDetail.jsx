@@ -16,8 +16,7 @@ const RestaurantDetail = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [deletingRestaurant, setDeletingRestaurant] = useState(false);
 
-  // Get logged-in user
-  useEffect(() => {
+   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -130,7 +129,7 @@ const RestaurantDetail = () => {
   return (
     <div className="restaurant-detail">
 
-      // HERO 
+      
       <div className="hero">
         {restaurant.image ? (
           <img src={restaurant.image} alt={restaurant.name} />
@@ -154,7 +153,7 @@ const RestaurantDetail = () => {
           <strong>📍 Address:</strong> {restaurant.address}
         </p>
 
-        // OWNER ACTIONS — only visible to the user who added this restaurant 
+       
         {isOwner && (
           <div className="owner-actions">
             <button
@@ -174,7 +173,7 @@ const RestaurantDetail = () => {
         )}
       </div>
 
-      // ADD REVIEW — only if logged in and hasn't reviewed yet
+      
       {currentUser && !alreadyReviewed && (
         <div className="add-review">
           <h2>Write a Review</h2>
@@ -204,7 +203,7 @@ const RestaurantDetail = () => {
         </div>
       )}
 
-      // Already reviewed notice
+      
       {currentUser && alreadyReviewed && (
         <div className="add-review">
           <p style={{ color: "#888", fontStyle: "italic" }}>
@@ -213,7 +212,7 @@ const RestaurantDetail = () => {
         </div>
       )}
 
-      // Not logged in notice 
+      
       {!currentUser && (
         <div className="add-review">
           <p style={{ color: "#888" }}>
@@ -222,7 +221,7 @@ const RestaurantDetail = () => {
         </div>
       )}
 
-      // REVIEWS LIST 
+       
       <div className="reviews-section">
         <h2>All Reviews ({reviews.length})</h2>
 
@@ -256,7 +255,7 @@ const RestaurantDetail = () => {
 
               <p className="review-comment">{review.comment}</p>
 
-              // Delete button — only for review owner 
+            
               {currentUser &&
                 review.userId?._id?.toString() ===
                   currentUser._id?.toString() && (
