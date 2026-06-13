@@ -42,7 +42,7 @@ const Home = () => {
         </p>
       </section>
 
-            {/* TRENDING */}
+          
       <section className="trending">
         <h2>Trending Near You 🔥</h2>
 
@@ -73,7 +73,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CATEGORIES */}
+      
       <section className="categories">
         <h2>Explore Categories</h2>
 
@@ -87,7 +87,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* FEATURES */}
+     
       <section className="features">
         <div className="feature-card">
           <h3>📍 Hidden Gems</h3>
@@ -105,10 +105,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="cta">
+     
+       <section className="cta">
         <h2>Start Your Food Journey Today 🍴</h2>
-        <button>Join NibbleNote</button>
+        <button onClick={() => navigate("/register")}>Join Now</button>
       </section>
     </>
   );
