@@ -153,19 +153,18 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
 
 
 
-const getRestaurantById = asyncHandler(async(req,res,next)=>{
+const getRestaurantById = asyncHandler(async (req, res, next) => {
+  const { restaurantId } = req.params;
 
-   const {restaurantId} = req.params;
+  const restaurant = await Restaurant.findById(restaurantId);
 
-   const restaurant = await Restaurant.findById(restaurantId);
+  if (!restaurant || !restaurant.isActive) {
+    throw new ApiError(404, "Restaurant not found");
+  }
 
-   if(!restaurant || !restaurant.isActive){
-      throw new ApiError(404, "Restaurant not found");
-   } 
-
-   res
-   .status(200)
-   .json(new ApiResponse(true, "Restaurant fetched successfully", restaurant));
+  res
+    .status(200)
+    .json(new ApiResponse(200, restaurant, "Restaurant fetched successfully"));
 });
 
 
