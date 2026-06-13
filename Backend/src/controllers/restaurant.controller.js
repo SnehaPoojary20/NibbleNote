@@ -15,9 +15,9 @@ const coordinates = {
   lng: req.body["coordinates[lng]"],
 };
 
-  if (!name || !address || !coordinates || !cuisine) {
-    throw new ApiError(400, "All fields are required");
-  }
+ if (!name || !address || !cuisine || !coordinates.lat || !coordinates.lng) {
+  throw new ApiError(400, "All fields are required, including coordinates");
+}
 
   const existingRestaurant = await Restaurant.findOne({
     name,
