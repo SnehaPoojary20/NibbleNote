@@ -9,15 +9,14 @@ import { Review } from "../models/review.model.js";
 const addRestaurantDetails = asyncHandler(async (req, res) => {
   const { name, address, cuisine } = req.body;
 
-  const coordinates = {
-    lat: req.body["coordinates[lat]"],
-    lng: req.body["coordinates[lng]"],
-  };
+  const lat = parseFloat(req.body["coordinates[lat]"]);
+  const lng = parseFloat(req.body["coordinates[lng]"]);
 
-  
-  if (!name || !address || !cuisine || !coordinates.lat || !coordinates.lng) {
-    throw new ApiError(400, "All fields are required, including coordinates");
+  if (!name || !address || !cuisine || isNaN(lat) || isNaN(lng)) {
+    throw new ApiError(400, "All fields are required, including valid coordinates");
   }
+
+  const coordinates = { lat, lng };
 
   const existingRestaurant = await Restaurant.findOne({
     name,
@@ -33,7 +32,6 @@ const addRestaurantDetails = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Restaurant image is required");
   }
 
- 
   const uploadedImage = await uploadOnCloudinary(
     req.files.image[0].buffer,
     "restaurant_images"
@@ -63,11 +61,6 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
   const { name, address, cuisine } = req.body;
 
-  const coordinates = {
-    lat: req.body["coordinates[lat]"],
-    lng: req.body["coordinates[lng]"],
-  };
-
   const restaurant = await Restaurant.findById(restaurantId);
   if (!restaurant) throw new ApiError(404, "Restaurant not found");
 
@@ -79,10 +72,16 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
   if (name) updateFields.name = name;
   if (address) updateFields.address = address;
   if (cuisine) updateFields.cuisine = cuisine;
-  if (coordinates.lat && coordinates.lng) updateFields.coordinates = coordinates;
+
+
+  const lat = parseFloat(req.body["coordinates[lat]"]);
+  const lng = parseFloat(req.body["coordinates[lng]"]);
+
+  if (!isNaN(lat) && !isNaN(lng)) {
+    updateFields.coordinates = { lat, lng };
+  }
 
   if (req.files?.image?.length) {
- 
     const uploadedImage = await uploadOnCloudinary(
       req.files.image[0].buffer,
       "restaurant_images"
