@@ -143,7 +143,7 @@ const RestaurantDetail = () => {
         </div>
       </div>
 
-      // INFO CARD 
+       
       <div className="info-card">
         <div className="rating">
           ⭐ {restaurant.avgRating?.toFixed(1) || "0.0"}
