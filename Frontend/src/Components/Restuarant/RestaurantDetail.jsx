@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import "./RestaurantDetail.css";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -13,6 +14,7 @@ const RestaurantDetail = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [deletingRestaurant, setDeletingRestaurant] = useState(false);
 
   // Get logged-in user
   useEffect(() => {
@@ -92,6 +94,27 @@ const RestaurantDetail = () => {
     }
   };
 
+  const handleDeleteRestaurant = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    if (!window.confirm("Delete this restaurant permanently? This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setDeletingRestaurant(true);
+      await api.delete(`/restaurants/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      navigate("/restaurants");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete restaurant");
+    } finally {
+      setDeletingRestaurant(false);
+    }
+  };
+
   if (!restaurant) return <p className="loading">Loading...</p>;
 
   const alreadyReviewed = currentUser
@@ -100,12 +123,20 @@ const RestaurantDetail = () => {
       )
     : false;
 
+  const isOwner =
+    currentUser &&
+    restaurant.createdBy?.toString() === currentUser._id?.toString();
+
   return (
     <div className="restaurant-detail">
 
-      {/* HERO */}
+      // HERO 
       <div className="hero">
-        <img src={restaurant.image} alt={restaurant.name} />
+        {restaurant.image ? (
+          <img src={restaurant.image} alt={restaurant.name} />
+        ) : (
+          <div className="hero-placeholder">No image available</div>
+        )}
         <div className="overlay" />
         <div className="hero-content">
           <h1>{restaurant.name}</h1>
@@ -113,7 +144,7 @@ const RestaurantDetail = () => {
         </div>
       </div>
 
-      {/* INFO CARD */}
+      // INFO CARD 
       <div className="info-card">
         <div className="rating">
           ⭐ {restaurant.avgRating?.toFixed(1) || "0.0"}
@@ -122,9 +153,28 @@ const RestaurantDetail = () => {
         <p>
           <strong>📍 Address:</strong> {restaurant.address}
         </p>
+
+        // OWNER ACTIONS — only visible to the user who added this restaurant 
+        {isOwner && (
+          <div className="owner-actions">
+            <button
+              className="edit-btn"
+              onClick={() => navigate(`/edit-restaurant/${id}`)}
+            >
+              ✏️ Edit Restaurant
+            </button>
+            <button
+              className="delete-restaurant-btn"
+              onClick={handleDeleteRestaurant}
+              disabled={deletingRestaurant}
+            >
+              {deletingRestaurant ? "Deleting..." : "🗑 Delete Restaurant"}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ADD REVIEW — only if logged in and hasn't reviewed yet */}
+      // ADD REVIEW — only if logged in and hasn't reviewed yet
       {currentUser && !alreadyReviewed && (
         <div className="add-review">
           <h2>Write a Review</h2>
@@ -154,16 +204,16 @@ const RestaurantDetail = () => {
         </div>
       )}
 
-      {/* Already reviewed notice */}
+      // Already reviewed notice
       {currentUser && alreadyReviewed && (
         <div className="add-review">
           <p style={{ color: "#888", fontStyle: "italic" }}>
-             You've already reviewed this restaurant.
+            You've already reviewed this restaurant.
           </p>
         </div>
       )}
 
-      {/* Not logged in notice */}
+      // Not logged in notice 
       {!currentUser && (
         <div className="add-review">
           <p style={{ color: "#888" }}>
@@ -172,7 +222,7 @@ const RestaurantDetail = () => {
         </div>
       )}
 
-      {/* REVIEWS LIST */}
+      // REVIEWS LIST 
       <div className="reviews-section">
         <h2>All Reviews ({reviews.length})</h2>
 
@@ -206,7 +256,7 @@ const RestaurantDetail = () => {
 
               <p className="review-comment">{review.comment}</p>
 
-              {/* Delete button — only for review owner */}
+              // Delete button — only for review owner 
               {currentUser &&
                 review.userId?._id?.toString() ===
                   currentUser._id?.toString() && (
