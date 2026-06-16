@@ -7,42 +7,31 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
+  const [picLoading, setPicLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        //  Load logged in user
         const res = await api.get("/users/me");
         setUser(res.data.data);
 
-        //  Load user's reviews
-        const reviewRes = await api.get(
-          "/reviews/user"
-        );
+        const reviewRes = await api.get("/reviews/user");
         const reviewList = Array.isArray(reviewRes.data.data)
-        ? reviewRes.data.data
-        : reviewRes.data.data.reviews || [];
-
+          ? reviewRes.data.data
+          : reviewRes.data.data?.reviews || [];
         setReviews(reviewList);
 
-        //  Load all restaurants
-        const restRes = await api.get(
-          "/restaurants"
-        );
-
-        //  ADD THIS LINE RIGHT HERE
-        console.log("restaurants response:", restRes.data);
-
-        //  Safe extraction (works with most API formats)
+        const restRes = await api.get("/restaurants");
         const list = Array.isArray(restRes.data.data)
           ? restRes.data.data
-          : restRes.data.data.restaurants || [];
+          : restRes.data.data?.restaurants || [];
 
-        //  Only user's restaurants
-        const mine = list.filter((r) => r.createdBy?.toString() === res.data.data._id?.toString());
-
+        const mine = list.filter(
+          (r) => r.createdBy?.toString() === res.data.data._id?.toString()
+        );
         setRestaurants(mine);
+
       } catch (err) {
         console.error("Profile load failed:", err);
         navigate("/login");
@@ -53,13 +42,24 @@ const Profile = () => {
   }, [navigate]);
 
   const handleProfilePicChange = async (e) => {
-    const data = new FormData();
-    data.append("profilePic", e.target.files[0]);
+    const file = e.target.files[0];
+    if (!file) return;
 
-    await api.put("/users/update-profile-pic", data, {
-  headers: { "Content-Type": "multipart/form-data" },
-});
-    window.location.reload();
+    const data = new FormData();
+    data.append("profilePic", file);
+
+    try {
+      setPicLoading(true);
+      await api.put("/users/update-profile-pic", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      window.location.reload();
+    } catch (err) {
+      console.error("Profile pic update failed:", err);
+      alert(err.response?.data?.message || "Failed to update profile picture");
+    } finally {
+      setPicLoading(false);
+    }
   };
 
   if (!user) return <div className="profile-loading">Loading...</div>;
@@ -68,14 +68,21 @@ const Profile = () => {
     <div className="profile-page">
 
       <div className="profile-card">
-        <img src={user.profilePic} className="profile-pic" />
-        <br></br><br></br>
+        <img src={user.profilePic} className="profile-pic" alt={user.username} />
+        <br /><br />
+
         
-        <button className="change-pic">
-          Change Photo
-          <input type="file" hidden onChange={handleProfilePicChange} />
-        </button>
-        <br></br><br></br>
+        <label className="change-pic">
+          {picLoading ? "Uploading..." : "Change Photo"}
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={handleProfilePicChange}
+            disabled={picLoading}
+          />
+        </label>
+        <br /><br />
         <h2>{user.username}</h2>
         <p>{user.email}</p>
       </div>
@@ -87,8 +94,13 @@ const Profile = () => {
 
         <div className="grid">
           {restaurants.map((r) => (
-            <div key={r._id} className="mini-card">
-              <img src={r.image} />
+            <div
+              key={r._id}
+              className="mini-card"
+              onClick={() => navigate(`/restaurants/${r._id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              <img src={r.image} alt={r.name} />
               <span>{r.name}</span>
             </div>
           ))}
@@ -102,7 +114,7 @@ const Profile = () => {
 
         {reviews.map((rev) => (
           <div key={rev._id} className="review-card">
-            <strong>{rev.restaurantId.name}</strong>
+            <strong>{rev.restaurantId?.name || "Restaurant"}</strong>
             <span>⭐ {rev.rating}</span>
             <p>{rev.comment}</p>
           </div>
@@ -114,6 +126,5 @@ const Profile = () => {
 };
 
 export default Profile;
-
 
 

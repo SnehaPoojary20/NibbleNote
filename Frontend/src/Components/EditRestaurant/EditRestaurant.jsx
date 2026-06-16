@@ -22,7 +22,6 @@ const EditRestaurant = () => {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
 
-  // Load existing restaurant details
   useEffect(() => {
     const loadRestaurant = async () => {
       try {
@@ -33,8 +32,8 @@ const EditRestaurant = () => {
           name: r.name || "",
           address: r.address || "",
           cuisine: r.cuisine || "",
-          lat: r.coordinates?.lat || "",
-          lng: r.coordinates?.lng || "",
+          lat: r.coordinates?.lat?.toString() || "",
+          lng: r.coordinates?.lng?.toString() || "",
           image: null,
         });
 
@@ -58,50 +57,56 @@ const EditRestaurant = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setFormData((prev) => ({ ...prev, image: file }));
     setPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    const latNum = parseFloat(formData.lat);
+    const lngNum = parseFloat(formData.lng);
+
+    if (formData.lat === "" || isNaN(latNum)) {
+      setError("Please enter a valid latitude");
+      return;
+    }
+    if (formData.lng === "" || isNaN(lngNum)) {
+      setError("Please enter a valid longitude");
+      return;
+    }
 
     const data = new FormData();
-    data.append("name", formData.name);
-    data.append("address", formData.address);
-    data.append("cuisine", formData.cuisine);
-    data.append("coordinates[lat]", formData.lat);
-    data.append("coordinates[lng]", formData.lng);
+    data.append("name", formData.name.trim());
+    data.append("address", formData.address.trim());
+    data.append("cuisine", formData.cuisine.trim());
+    data.append("coordinates[lat]", String(latNum));
+    data.append("coordinates[lng]", String(lngNum));
 
-    // Only append image if a new one was selected
     if (formData.image) {
       data.append("image", formData.image);
     }
-
-    const token = localStorage.getItem("token");
 
     try {
       setLoading(true);
 
       await api.put(`/restaurants/${id}`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Restaurant updated successfully !!");
+      alert("Restaurant updated successfully ✅");
       navigate(`/restaurants/${id}`);
     } catch (err) {
       console.error("Update failed:", err.response?.data || err);
-      alert(err.response?.data?.message || "Failed to update restaurant");
+      setError(err.response?.data?.message || "Failed to update restaurant");
     } finally {
       setLoading(false);
     }
   };
 
   if (fetching) return <p className="edit-loading">Loading...</p>;
-  if (error) return <p className="edit-error">{error}</p>;
+  if (error && !formData.name) return <p className="edit-error">{error}</p>;
 
   return (
     <div className="edit-restaurant">
@@ -109,6 +114,7 @@ const EditRestaurant = () => {
 
       <div className="restaurant-form-container">
         <form className="restaurant-form" onSubmit={handleSubmit}>
+
           <input
             type="text"
             name="name"
@@ -138,17 +144,17 @@ const EditRestaurant = () => {
 
           <div className="coordinates">
             <input
-              type="number"
+              type="text"
               name="lat"
-              placeholder="Latitude"
+              placeholder="Latitude (e.g. 19.0760)"
               value={formData.lat}
               onChange={handleChange}
               required
             />
             <input
-              type="number"
+              type="text"
               name="lng"
-              placeholder="Longitude"
+              placeholder="Longitude (e.g. 72.8777)"
               value={formData.lng}
               onChange={handleChange}
               required
@@ -156,7 +162,7 @@ const EditRestaurant = () => {
           </div>
 
           <label className="image-label">
-            Restaurant Image (leave empty to keep current image)
+            Restaurant Image (leave empty to keep current)
           </label>
 
           <input
@@ -179,11 +185,12 @@ const EditRestaurant = () => {
             ) : null}
           </div>
 
+          {error && <p className="form-error">⚠ {error}</p>}
+
           <div className="edit-actions">
             <button type="submit" disabled={loading}>
               {loading ? "Updating..." : "Update Restaurant"}
             </button>
-
             <button
               type="button"
               className="cancel-btn"
@@ -192,6 +199,7 @@ const EditRestaurant = () => {
               Cancel
             </button>
           </div>
+
         </form>
       </div>
     </div>

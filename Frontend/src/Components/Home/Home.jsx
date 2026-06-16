@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Home.css";
 
 const images = [
@@ -14,6 +15,7 @@ const images = [
 
 const Home = () => {
   const [index, setIndex] = useState(0);
+  const navigate = useNavigate(); // ✅ was missing
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,7 +26,6 @@ const Home = () => {
 
   return (
     <>
-   
       <section className="hero">
         <div
           className="slider"
@@ -33,7 +34,6 @@ const Home = () => {
         <h1>Discover. Taste. Remember</h1>
       </section>
 
-     
       <section className="about">
         <h2>Why NibbleNote?</h2>
         <p>
@@ -42,10 +42,8 @@ const Home = () => {
         </p>
       </section>
 
-          
       <section className="trending">
         <h2>Trending Near You 🔥</h2>
-
         <div className="food-grid">
           <div className="food-card">
             <img src="/images/pizza.jpeg" alt="Pizza" />
@@ -54,7 +52,6 @@ const Home = () => {
               <p>⭐ 4.8 • Italian</p>
             </div>
           </div>
-
           <div className="food-card">
             <img src="/images/biryani.jpeg" alt="Biryani" />
             <div className="food-info">
@@ -62,7 +59,6 @@ const Home = () => {
               <p>⭐ 4.9 • Mughlai</p>
             </div>
           </div>
-
           <div className="food-card">
             <img src="/images/cake.jpeg" alt="Cake" />
             <div className="food-info">
@@ -73,10 +69,8 @@ const Home = () => {
         </div>
       </section>
 
-      
       <section className="categories">
         <h2>Explore Categories</h2>
-
         <div className="category-container">
           <div className="category-card">🍕 Pizza</div>
           <div className="category-card">🍔 Burgers</div>
@@ -87,26 +81,22 @@ const Home = () => {
         </div>
       </section>
 
-     
       <section className="features">
         <div className="feature-card">
           <h3>📍 Hidden Gems</h3>
           <p>Find underrated restaurants and local favorites.</p>
         </div>
-
         <div className="feature-card">
           <h3>📝 Food Journals</h3>
           <p>Save and remember your best food experiences.</p>
         </div>
-
         <div className="feature-card">
           <h3>⭐ Honest Reviews</h3>
           <p>Discover real opinions from passionate food lovers.</p>
         </div>
       </section>
 
-     
-       <section className="cta">
+      <section className="cta">
         <h2>Start Your Food Journey Today 🍴</h2>
         <button onClick={() => navigate("/register")}>Join Now</button>
       </section>
