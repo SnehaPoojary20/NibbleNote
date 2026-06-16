@@ -6,22 +6,39 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Review } from "../models/review.model.js";
 
 
+
 const addRestaurantDetails = asyncHandler(async (req, res) => {
   const { name, address, cuisine } = req.body;
 
-  const lat = parseFloat(req.body["coordinates[lat]"]);
-  const lng = parseFloat(req.body["coordinates[lng]"]);
 
-  if (!name || !address || !cuisine || isNaN(lat) || isNaN(lng)) {
-    throw new ApiError(400, "All fields are required, including valid coordinates");
+  const latRaw = String(req.body["coordinates[lat]"] ?? "").trim();
+  const lngRaw = String(req.body["coordinates[lng]"] ?? "").trim();
+
+  const lat = parseFloat(latRaw);
+  const lng = parseFloat(lngRaw);
+
+  if (!name?.trim()) {
+    throw new ApiError(400, "Restaurant name is required");
+  }
+  if (!address?.trim()) {
+    throw new ApiError(400, "Address is required");
+  }
+  if (!cuisine?.trim()) {
+    throw new ApiError(400, "Cuisine is required");
+  }
+  if (latRaw === "" || isNaN(lat)) {
+    throw new ApiError(400, "Valid latitude is required");
+  }
+  if (lngRaw === "" || isNaN(lng)) {
+    throw new ApiError(400, "Valid longitude is required");
   }
 
   const coordinates = { lat, lng };
 
   const existingRestaurant = await Restaurant.findOne({
-    name,
-    "coordinates.lat": coordinates.lat,
-    "coordinates.lng": coordinates.lng,
+    name: name.trim(),
+    "coordinates.lat": lat,
+    "coordinates.lng": lng,
   });
 
   if (existingRestaurant) {
@@ -42,10 +59,10 @@ const addRestaurantDetails = asyncHandler(async (req, res) => {
   }
 
   const restaurant = await Restaurant.create({
-    name,
-    address,
+    name: name.trim(),
+    address: address.trim(),
     coordinates,
-    cuisine,
+    cuisine: cuisine.trim(),
     image: uploadedImage.secure_url,
     createdBy: req.user._id,
   });
@@ -69,15 +86,16 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
   }
 
   const updateFields = {};
-  if (name) updateFields.name = name;
-  if (address) updateFields.address = address;
-  if (cuisine) updateFields.cuisine = cuisine;
+  if (name?.trim()) updateFields.name = name.trim();
+  if (address?.trim()) updateFields.address = address.trim();
+  if (cuisine?.trim()) updateFields.cuisine = cuisine.trim();
 
+  const latRaw = String(req.body["coordinates[lat]"] ?? "").trim();
+  const lngRaw = String(req.body["coordinates[lng]"] ?? "").trim();
+  const lat = parseFloat(latRaw);
+  const lng = parseFloat(lngRaw);
 
-  const lat = parseFloat(req.body["coordinates[lat]"]);
-  const lng = parseFloat(req.body["coordinates[lng]"]);
-
-  if (!isNaN(lat) && !isNaN(lng)) {
+  if (latRaw !== "" && lngRaw !== "" && !isNaN(lat) && !isNaN(lng)) {
     updateFields.coordinates = { lat, lng };
   }
 
@@ -86,11 +104,9 @@ const updateRestaurantDetails = asyncHandler(async (req, res) => {
       req.files.image[0].buffer,
       "restaurant_images"
     );
-
     if (!uploadedImage?.secure_url) {
       throw new ApiError(500, "Failed to upload restaurant image");
     }
-
     updateFields.image = uploadedImage.secure_url;
   }
 
@@ -154,7 +170,7 @@ const getAllRestaurants = asyncHandler(async (req, res) => {
 
 
 
-const getRestaurantById = asyncHandler(async (req, res, next) => {
+const getRestaurantById = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
 
   const restaurant = await Restaurant.findById(restaurantId);
@@ -170,7 +186,7 @@ const getRestaurantById = asyncHandler(async (req, res, next) => {
 
 
 
-const deleteRestaurant = asyncHandler(async (req, res, next) => {
+const deleteRestaurant = asyncHandler(async (req, res) => {
   const { restaurantId } = req.params;
 
   const restaurant = await Restaurant.findById(restaurantId);
@@ -186,7 +202,9 @@ const deleteRestaurant = asyncHandler(async (req, res, next) => {
   restaurant.isActive = false;
   await restaurant.save();
 
-  res.status(200).json(new ApiResponse(200, null, "Restaurant deleted successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Restaurant deleted successfully"));
 });
 
 
@@ -231,12 +249,11 @@ const searchRestaurants = asyncHandler(async (req, res) => {
 });
 
 
-
 export {
   addRestaurantDetails,
   updateRestaurantDetails,
   getAllRestaurants,
   getRestaurantById,
   deleteRestaurant,
-  searchRestaurants
+  searchRestaurants,
 };

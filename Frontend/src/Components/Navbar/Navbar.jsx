@@ -5,9 +5,8 @@ import api from "../../api/axios";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -19,7 +18,6 @@ const Navbar = () => {
       }
 
       try {
-       
         const res = await api.get("/users/me");
         setUser(res.data.data);
       } catch (err) {
@@ -34,36 +32,27 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await api.post("/users/logout"); 
-
+      await api.post("/users/logout");
+    } catch (err) {
+     console.error("Logout API failed:", err);
+    } finally {
       localStorage.removeItem("token");
       setUser(null);
-
       navigate("/login");
-    } catch (err) {
-      console.error("Logout failed", err);
     }
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-
     if (!query.trim()) return;
-
-    navigate(`/search?q=${encodeURIComponent(query)}`); 
+    navigate(`/search?q=${encodeURIComponent(query.trim())}`);
   };
 
   return (
     <div className="app-navbar">
       <div className="navbar-content">
 
-        <Link className="nav-item-link" to="/">Home</Link>
-
-        {user && (
-          <Link className="nav-item-link" to="/profile">
-            Profile
-          </Link>
-        )}
+        <Link className="nav-item-link brand" to="/">NibbleNote</Link>
 
         <form className="search-form" onSubmit={handleSearch}>
           <input
@@ -79,17 +68,30 @@ const Navbar = () => {
         </form>
 
         <Link className="nav-item-link" to="/restaurants">Restaurants</Link>
-        <Link className="nav-item-link" to="/add-restaurant">+ Add Restaurant</Link>
 
+        
+        {user && (
+          <Link className="nav-item-link" to="/add-restaurant">
+            + Add
+          </Link>
+        )}
+
+        {user && (
+          <Link className="nav-item-link" to="/profile">
+            Profile
+          </Link>
+        )}
+
+        
         {!user ? (
           <>
             <Link className="nav-item-link" to="/login">Login</Link>
             <Link className="nav-item-link" to="/register">Register</Link>
           </>
         ) : (
-          <span className="nav-item-link logout-btn" onClick={handleLogout}>
+          <button className="nav-item-link logout-btn" onClick={handleLogout}>
             Logout
-          </span>
+          </button>
         )}
 
       </div>

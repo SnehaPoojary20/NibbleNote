@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./AddRestaurant.css";
-import api from "../../api/axios"; 
+import api from "../../api/axios";
 
 const AddRestaurant = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +14,7 @@ const AddRestaurant = () => {
 
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,63 +24,67 @@ const AddRestaurant = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setFormData((prev) => ({ ...prev, image: file }));
     setPreview(URL.createObjectURL(file));
   };
 
-  
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  if (!formData.image) {
-    alert("Please upload a restaurant image");
-    return;
-  }
+    // Frontend validation before sending
+    if (!formData.image) {
+      setError("Please upload a restaurant image");
+      return;
+    }
 
-  const data = new FormData();
-  data.append("name", formData.name);
-  data.append("address", formData.address);
-  data.append("cuisine", formData.cuisine);
+    const latNum = parseFloat(formData.lat);
+    const lngNum = parseFloat(formData.lng);
 
-  // backend expects nested coordinates
-  data.append("coordinates[lat]", formData.lat);
-  data.append("coordinates[lng]", formData.lng);
+    if (formData.lat === "" || isNaN(latNum)) {
+      setError("Please enter a valid latitude (e.g. 19.0760)");
+      return;
+    }
+    if (formData.lng === "" || isNaN(lngNum)) {
+      setError("Please enter a valid longitude (e.g. 72.8777)");
+      return;
+    }
 
-  // backend expects image field
-  data.append("image", formData.image);
+    const data = new FormData();
+    data.append("name", formData.name.trim());
+    data.append("address", formData.address.trim());
+    data.append("cuisine", formData.cuisine.trim());
+    //  Send as plain number strings — backend parseFloat handles them
+    data.append("coordinates[lat]", String(latNum));
+    data.append("coordinates[lng]", String(lngNum));
+    data.append("image", formData.image);
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await api.post("/restaurants", data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+      const res = await api.post("/restaurants", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    console.log("Created:", res.data);
+      alert("Restaurant added successfully ✅");
 
-    alert("Restaurant added successfully ✅");
+      setFormData({
+        name: "",
+        address: "",
+        cuisine: "",
+        lat: "",
+        lng: "",
+        image: null,
+      });
+      setPreview(null);
 
-    setFormData({
-      name: "",
-      address: "",
-      cuisine: "",
-      lat: "",
-      lng: "",
-      image: null,
-    });
-
-    setPreview(null);
-
-  } catch (err) {
-    console.error("Add restaurant failed:", err.response?.data || err);
-    alert(err.response?.data?.message || "Failed to add restaurant");
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (err) {
+      console.error("Add restaurant failed:", err.response?.data || err);
+      setError(err.response?.data?.message || "Failed to add restaurant");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="add-restaurant">
@@ -87,6 +92,7 @@ const handleSubmit = async (e) => {
 
       <div className="restaurant-form-container">
         <form className="restaurant-form" onSubmit={handleSubmit}>
+
           <input
             type="text"
             name="name"
@@ -115,18 +121,19 @@ const handleSubmit = async (e) => {
           />
 
           <div className="coordinates">
+           
             <input
-              type="number"
+              type="text"
               name="lat"
-              placeholder="Latitude"
+              placeholder="Latitude (e.g. 19.0760)"
               value={formData.lat}
               onChange={handleChange}
               required
             />
             <input
-              type="number"
+              type="text"
               name="lng"
-              placeholder="Longitude"
+              placeholder="Longitude (e.g. 72.8777)"
               value={formData.lng}
               onChange={handleChange}
               required
@@ -148,9 +155,13 @@ const handleSubmit = async (e) => {
             />
           )}
 
+          
+          {error && <p className="form-error">⚠ {error}</p>}
+
           <button type="submit" disabled={loading}>
             {loading ? "Adding..." : "Add Restaurant"}
           </button>
+
         </form>
       </div>
     </div>
