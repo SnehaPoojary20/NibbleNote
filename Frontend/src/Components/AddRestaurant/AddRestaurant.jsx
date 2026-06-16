@@ -54,10 +54,18 @@ const AddRestaurant = () => {
     data.append("name", formData.name.trim());
     data.append("address", formData.address.trim());
     data.append("cuisine", formData.cuisine.trim());
-    //  Send as plain number strings — backend parseFloat handles them
-    data.append("coordinates[lat]", String(latNum));
-    data.append("coordinates[lng]", String(lngNum));
+    data.append("lat", String(latNum));
+    data.append("lng", String(lngNum));
     data.append("image", formData.image);
+
+  console.log("Submitting FormData:", {
+  name: formData.name,
+  address: formData.address,
+  cuisine: formData.cuisine,
+  lat: latNum,
+  lng: lngNum,
+  image: formData.image?.name,
+});
 
     try {
       setLoading(true);
