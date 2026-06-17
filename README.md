@@ -2,7 +2,7 @@
 
 A full-stack restaurant and café discovery platform. Users share reviews, images, and location-based experiences — the platform surfaces the right results fast through optimized queries and location-aware ranking.
 
-**Live:** [nibble-note.vercel.app](https://nibble-note.vercel.app) · **API:** [nibblenote.onrender.com](https://nibblenote.onrender.com)
+**Live:** [nibble-note.vercel.app](https://nibble-note.vercel.app)
 
 ---
 
