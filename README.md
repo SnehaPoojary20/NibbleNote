@@ -1,18 +1,14 @@
-# NibbleNote
+## NibbleNote
 
-A full-stack restaurant and café discovery platform. Users share reviews, images, and location-based experiences — the platform surfaces the right results fast through optimized queries and location-aware ranking.
+A full-stack restaurant and café discovery platform. Users share reviews, images, and location-based experiences — the platform surfaces relevant results through indexed queries and location-aware ranking.
 
-**Live:** [nibble-note.vercel.app](https://nibble-note.vercel.app)
+Live: nibble-note.vercel.app
 
----
+### The Engineering Problem
 
-## The Engineering Problem
+Restaurant discovery has two hard parts: keeping queries fast as content grows, and returning results that are actually relevant to where the user is. NibbleNote addresses both with MongoDB compound indexing for the primary discovery-feed queries, and geospatial queries for location-aware ranking.
 
-Restaurant discovery at scale has two hard parts: **query performance** as content grows, and **location relevance** when returning results. NibbleNote tackles both — compound indexing on MongoDB reduced lookup latency by over 40%, and geospatial queries power the location-aware feed without naive full-collection scans.
-
----
-
-## Architecture
+### Architecture
 
 ```
 React Frontend (Vercel)
@@ -20,7 +16,7 @@ React Frontend (Vercel)
         ▼
 Node.js / Express.js REST API (Render)
         │
-        ├── /auth     → JWT authentication + session management
+        ├── /auth      → JWT authentication
         ├── /posts     → Review creation, image uploads, feed retrieval
         ├── /search    → Compound-indexed search queries
         └── /location  → Geospatial query layer
@@ -29,51 +25,42 @@ Node.js / Express.js REST API (Render)
 MongoDB (Compound Indexes + Geospatial Queries)
 ```
 
----
+### Key Engineering Decisions
 
-## Key Engineering Decisions
+**MongoDB Compound Indexing**
+Reviews are queried by multiple dimensions simultaneously — location, cuisine type, rating, recency. A compound index on `{ location, rating, createdAt }` is designed to avoid full collection scans on the primary discovery feed path as the dataset grows. (Query plans have not yet been benchmarked against pre-index behavior at production scale — this is on the improvement list below.)
 
-### MongoDB Compound Indexing
-Reviews are queried by multiple dimensions simultaneously — location, cuisine type, rating, recency. Compound indexes on `{ location, rating, createdAt }` eliminate collection scans and keep response times consistent as data grows. **Result: 40%+ reduction in lookup latency.**
+**Geospatial Discovery**
+Uses MongoDB's `$near` operator with 2dsphere indexes to return nearby restaurants ranked by distance. This keeps the sort in the database rather than pulling all documents and filtering in application code.
 
-### Geospatial Discovery
-Used MongoDB's `$near` geospatial operator with `2dsphere` indexes to return nearby restaurants ranked by distance. This avoids pulling all documents and filtering in application code — the sort happens in the database.
+**JWT Authentication Pipeline**
+Stateless JWT-based auth with token verification middleware applied at the route level. No session storage — each request is independently authenticated, which keeps the API horizontally scalable.
 
-### JWT Authentication Pipeline
-Stateless JWT-based auth with token verification middleware applied at the route level. No session storage — each request is independently authenticated, keeping the API horizontally scalable.
+**Modular REST API Design**
+Routes are organized by domain (`/users`, `/posts`, `/search`, `/location`) with controller-service separation, so each service module owns its own business logic.
 
-### Modular REST API Design
-Routes are organized by domain (`/users`, `/posts`, `/search`, `/location`) with controller-service separation. Each service module owns its business logic and is independently testable.
-
----
-
-## Tech Stack
+### Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|---|---|
 | Frontend | React.js, Tailwind CSS, Axios |
 | Backend | Node.js, Express.js |
-| Database | MongoDB, MongoDB Indexing (`2dsphere`) |
+| Database | MongoDB, MongoDB Indexing (2dsphere) |
 | Auth | JWT |
 | Deployment | Vercel (frontend), Render (backend) |
 
----
-
-## Features
+### Features
 
 - Restaurant and café discovery with location-based sorting
 - Community ratings and review system
 - Image-based posts and user profiles
-- Optimized search and filtering
-- Secure JWT-authenticated sessions
+- Indexed search and filtering
+- JWT-authenticated sessions
 - Responsive UI across devices
 
----
-
-## Local Setup
+### Local Setup
 
 ```bash
-# Clone the repo
 git clone https://github.com/SnehaPoojary20/NibbleNote.git
 
 # Backend
@@ -89,16 +76,13 @@ npm install
 echo "VITE_API_URL=http://localhost:5000" > .env
 npm run dev
 ```
+Backend runs at http://localhost:5000. Frontend runs at http://localhost:5173.
 
-Backend runs at `http://localhost:5000`
-Frontend runs at `http://localhost:5173`
+### What I'd improve next
 
----
-
-## What I'd improve next
-
-- **Redis caching** on frequently queried feed endpoints to reduce database load
-- **Pagination with cursors** instead of offset pagination for large result sets
-- **Real-time notifications** via WebSockets for review activity
-- **Recommendation ranking** using collaborative filtering on user engagement signals
+- **Benchmark query performance directly** (explain plans, before/after latency at realistic data volume) to quantify the actual impact of the compound indexes rather than assuming it.
+- Redis caching on frequently queried feed endpoints to reduce database load.
+- Cursor-based pagination instead of offset pagination for large result sets.
+- Real-time notifications via WebSockets for review activity.
+- Recommendation ranking using collaborative filtering on user engagement signals.
 
