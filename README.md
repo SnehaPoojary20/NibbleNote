@@ -2,7 +2,7 @@
 
 A full-stack restaurant and café discovery platform. Users share reviews, images, and location-based experiences — the platform surfaces relevant results through indexed queries and location-aware ranking.
 
-Live: nibble-note.vercel.app
+Live: https://nibble-note.vercel.app
 
 ### The Engineering Problem
 
@@ -76,7 +76,6 @@ npm install
 echo "VITE_API_URL=http://localhost:5000" > .env
 npm run dev
 ```
-Backend runs at http://localhost:5000. Frontend runs at http://localhost:5173.
 
 ### What I'd improve next
 
