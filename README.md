@@ -1,12 +1,13 @@
 ## NibbleNote
 
-A full-stack restaurant and café discovery platform. Users share reviews, images, and location-based experiences — the platform surfaces relevant results through indexed queries and location-aware ranking.
+A full-stack restaurant and café discovery platform. Users add restaurants, leave ratings and written reviews, and search the catalog by name, cuisine, or free text — with an AI-generated "vibe check" summary of what reviewers are saying about a place.
 
-Live: https://nibble-note.vercel.app
+**Live:** https://nibble-note.vercel.app
+**GitHub:** https://github.com/SnehaPoojary20/NibbleNote
 
 ### The Engineering Problem
 
-Restaurant discovery has two hard parts: keeping queries fast as content grows, and returning results that are actually relevant to where the user is. NibbleNote addresses both with MongoDB compound indexing for the primary discovery-feed queries, and geospatial queries for location-aware ranking.
+Two things matter for a discovery feed like this: search has to return the *right* results, not just matching ones, and aggregate signals (rating, review count) have to stay cheap to read even as reviews pile up. NibbleNote addresses both with a relevance-scored search endpoint and a denormalized, write-time-recalculated stats model.
 
 ### Architecture
 
@@ -16,47 +17,54 @@ React Frontend (Vercel)
         ▼
 Node.js / Express.js REST API (Render)
         │
-        ├── /auth      → JWT authentication
-        ├── /posts     → Review creation, image uploads, feed retrieval
-        ├── /search    → Compound-indexed search queries
-        └── /location  → Geospatial query layer
+        ├── /api/v1/users        → registration, login, JWT auth, profile
+        ├── /api/v1/restaurants  → CRUD, listing, search, "vibe check"
+        └── /api/v1/reviews      → CRUD, per-restaurant stats recalculation
         │
         ▼
-MongoDB (Compound Indexes + Geospatial Queries)
+MongoDB (Mongoose)
 ```
 
 ### Key Engineering Decisions
 
-**MongoDB Compound Indexing**
-Reviews are queried by multiple dimensions simultaneously — location, cuisine type, rating, recency. A compound index on `{ location, rating, createdAt }` is designed to avoid full collection scans on the primary discovery feed path as the dataset grows. (Query plans have not yet been benchmarked against pre-index behavior at production scale — this is on the improvement list below.)
+**Weighted-Relevance Search**
+`GET /api/v1/restaurants/search` runs a Mongo aggregation pipeline: a regex match across name/cuisine/address, an `$addFields` stage that scores prefix matches higher than substring matches, then sorts by score and rating and caps the response at the top 8 results. `GET /api/v1/restaurants` (the plain listing/filter endpoint) uses offset pagination at 10 results per page.
 
-**Geospatial Discovery**
-Uses MongoDB's `$near` operator with 2dsphere indexes to return nearby restaurants ranked by distance. This keeps the sort in the database rather than pulling all documents and filtering in application code.
+**Denormalized Rating Aggregation**
+`avgRating` and `totalReviews` live directly on the `Restaurant` document instead of being computed per-request. Every review create/update/delete triggers a Mongo aggregation (`$group` on `restaurantId`) that recalculates both fields and writes them back — so restaurant reads stay index-only lookups instead of joining across the reviews collection.
 
-**JWT Authentication Pipeline**
-Stateless JWT-based auth with token verification middleware applied at the route level. No session storage — each request is independently authenticated, which keeps the API horizontally scalable.
+**Duplicate-Location Prevention**
+A unique compound index on `{ name, coordinates.lat, coordinates.lng }` stops the same restaurant from being added twice at the same address.
 
-**Modular REST API Design**
-Routes are organized by domain (`/users`, `/posts`, `/search`, `/location`) with controller-service separation, so each service module owns its own business logic.
+**"Vibe Check" AI Summarizer**
+`GET /api/v1/restaurants/:id/vibe` pulls up to 150 review comments for a restaurant, sends them to an external LLM API via Axios, and caches the summary in an in-memory `Map` for 24 hours, keyed by restaurant ID. The cache is explicitly invalidated on every review create/update/delete so a new review can't get lost behind stale AI output.
+
+**JWT Authentication**
+Access and refresh tokens are issued on login (httpOnly cookies, `secure`, `sameSite: none`) and verified per-request in `verifyJWT` middleware. A `/refresh-token` endpoint reissues both tokens using the refresh token stored on the user document.
+
+### Frontend
+
+React SPA, feature-based component folders under `src/Components/` (Home, Restaurant, Review, AddRestaurant, EditRestaurant, Login, Register, Profile, SearchResults, Navbar, Footer). Plain per-component `.css` files — no Tailwind or Bootstrap. Axios client with a request interceptor that attaches the JWT to outgoing requests.
 
 ### Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React.js, Tailwind CSS, Axios |
-| Backend | Node.js, Express.js |
-| Database | MongoDB, MongoDB Indexing (2dsphere) |
-| Auth | JWT |
+| Frontend | React.js, React Router, plain CSS, Axios |
+| Backend | Node.js, Express.js, Mongoose |
+| Database | MongoDB (compound + unique indexes, aggregation pipeline) |
+| Auth | JWT (access + refresh tokens) |
+| File uploads | Multer + Cloudinary |
 | Deployment | Vercel (frontend), Render (backend) |
 
 ### Features
 
-- Restaurant and café discovery with location-based sorting
-- Community ratings and review system
-- Image-based posts and user profiles
-- Indexed search and filtering
-- JWT-authenticated sessions
-- Responsive UI across devices
+- Restaurant and café discovery with weighted search
+- Ratings and written reviews, with denormalized aggregate stats
+- AI-generated review summaries ("vibe check"), cached for 24 hours
+- Image uploads for restaurants and profiles (Cloudinary)
+- JWT-authenticated sessions with refresh-token renewal
+- Soft-delete on restaurants (`isActive` flag, not a hard delete)
 
 ### Local Setup
 
@@ -64,24 +72,24 @@ Routes are organized by domain (`/users`, `/posts`, `/search`, `/location`) with
 git clone https://github.com/SnehaPoojary20/NibbleNote.git
 
 # Backend
-cd backend
+cd NibbleNote/Backend
 npm install
-cp .env.example .env
-# Add: MONGO_URI, JWT_SECRET
-npm start
+# create a .env with: MONGO_URI, ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY,
+# REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY, CLOUDINARY_*, LLM_API_URL
+npm run dev
 
 # Frontend
-cd ../frontend
+cd ../Frontend
 npm install
 echo "VITE_API_URL=http://localhost:5000" > .env
 npm run dev
 ```
 
-### What I'd improve next
+### Known Limitations / What I'd Improve Next
 
-- **Benchmark query performance directly** (explain plans, before/after latency at realistic data volume) to quantify the actual impact of the compound indexes rather than assuming it.
-- Redis caching on frequently queried feed endpoints to reduce database load.
+- **No geospatial querying.** Restaurant location is stored as plain `{ lat, lng }` numbers, not a GeoJSON point, so there's no `2dsphere` index and no `$near`/proximity search — search today is text-based (name/cuisine/address), not location-based. This is the biggest gap between what the app could do and what it does today, and the next thing I'd build.
+- **In-memory cache doesn't survive restarts or scale past one instance.** The vibe-check cache is a plain `Map` on the Node process — fine for a single Render instance, but it resets on every deploy and wouldn't be shared across replicas. Redis is the natural next step if this needs to scale horizontally.
+- **No dedicated service layer.** Controllers call Mongoose models directly; there's no controller/service split yet, so business logic and request handling are mixed in the same functions.
 - Cursor-based pagination instead of offset pagination for large result sets.
 - Real-time notifications via WebSockets for review activity.
-- Recommendation ranking using collaborative filtering on user engagement signals.
 
